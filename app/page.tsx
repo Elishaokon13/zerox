@@ -162,6 +162,80 @@ export default function Home() {
   // Gate gameplay if an unpaid loss settlement exists
   const [mustSettle, setMustSettle] = useState(false);
   const [settlingLoss, setSettlingLoss] = useState(false);
+  const [referralStats, setReferralStats] = useState({ totalReferrals: 0, totalPoints: 0 });
+  const [showReferralModal, setShowReferralModal] = useState(false);
+
+  // Load referral stats
+  const loadReferralStats = useCallback(async () => {
+    if (!address) return;
+    try {
+      const response = await fetch(`/api/referral?address=${address}`);
+      const data = await response.json();
+      if (response.ok) {
+        setReferralStats({
+          totalReferrals: data.totalReferrals,
+          totalPoints: data.totalPoints
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load referral stats:', error);
+    }
+  }, [address]);
+
+  // Generate referral link
+  const getReferralLink = useCallback(() => {
+    if (!address) return '';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || window.location.origin;
+    return `${baseUrl}?ref=${address}`;
+  }, [address]);
+
+  // Copy referral link to clipboard
+  const copyReferralLink = useCallback(async () => {
+    const link = getReferralLink();
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast('Referral link copied!');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      showToast('Failed to copy link');
+    }
+  }, [getReferralLink, showToast]);
+
+  // Load referral stats when address changes
+  useEffect(() => {
+    loadReferralStats();
+  }, [loadReferralStats]);
+
+  // Handle referral links on page load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refAddress = urlParams.get('ref');
+    
+    if (refAddress && address && refAddress.toLowerCase() !== address.toLowerCase()) {
+      // Process referral
+      fetch('/api/referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referrerAddress: refAddress,
+          referredAddress: address
+        })
+      }).then(response => {
+        if (response.ok) {
+          showToast('Welcome! You were referred by a friend!');
+          loadReferralStats(); // Refresh stats
+        }
+      }).catch(error => {
+        console.error('Referral processing failed:', error);
+      });
+      
+      // Clean up URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('ref');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [address, loadReferralStats, showToast]);
+
   useEffect(() => {
     const check = async () => {
       if (!address) { setMustSettle(false); return; }
@@ -420,54 +494,33 @@ export default function Home() {
         recordResult(result);
         setResultRecorded(true);
         
-        // Then handle payout/charge
+        // Update points system instead of immediate payouts
         if (address) {
-          if (gameStatus === 'won') {
-            // Handle win payout
-            fetch('/api/payout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ address })
-            }).then(r => {
-              if (r.ok) showToast('Winner payout sent');
-            }).catch(() => {});
-          } else if (gameStatus === 'lost') {
-            // Handle loss charge
-            fetch('/api/charge', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ address })
-            }).then(async r => {
-              const data = await r.json();
-              if (data?.to && data?.value) {
-                try {
-                  const { SCOREBOARD_ABI, SCOREBOARD_ADDRESS } = await import('@/lib/useScoreboard');
-                  const recordData = encodeFunctionData({
-                    abi: SCOREBOARD_ABI,
-                    functionName: 'recordGame',
-                    args: ['loss']
-                  });
-                  await sendCalls({
-                    calls: [
-                      { to: SCOREBOARD_ADDRESS as `0x${string}`, data: recordData },
-                      { to: data.to as `0x${string}`, value: BigInt(data.value) }
-                    ]
-                  });
-                  showToast('Loss recorded and settled');
-                } catch {
-                  // Fallback to simple transfer if batching not supported
-                  await sendTransactionAsync({ to: data.to as `0x${string}`, value: BigInt(data.value) });
-                  showToast('Loss settlement sent');
-                }
-              }
-            }).catch(() => {});
-          }
+          // Update leaderboard with points
+          fetch('/api/leaderboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              address, 
+              result,
+              alias: context?.user?.username,
+              pfpUrl: context?.user?.pfpUrl
+            })
+          }).then(r => {
+            if (r.ok) {
+              const pointsText = result === 'win' ? '+2 points' : result === 'loss' ? '+2 points' : '+1 point';
+              showToast(pointsText);
+            }
+          }).catch(() => {});
         }
       } catch (error) {
         console.error('Failed to record result:', error);
       }
     }
+  }, [gameStatus, resultRecorded, address, recordResult, context]);
 
+  // Game status effects (sounds, haptics, auto-restart)
+  useEffect(() => {
     if (gameStatus === 'won') {
       playWin();
       hapticWin();
@@ -495,7 +548,7 @@ export default function Home() {
       }, 1200);
       return () => clearTimeout(id);
     }
-  }, [gameStatus, startNewGameRound, recordResult, resultRecorded, showToast, address, sendTransactionAsync, sendCalls]);
+  }, [gameStatus, startNewGameRound, playWin, hapticWin, playLoss, hapticLoss, playDraw, showToast]);
 
   // Handle transaction completion and show modal
   useEffect(() => {
@@ -885,12 +938,18 @@ export default function Home() {
             <div className="w-full text-center text-sm opacity-80">
               {configText}
             </div>
-            <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center gap-2">
               <button
                 className="px-4 py-1.5 rounded-full text-sm border bg-white text-[#000000] border-[#70FF5A]"
                 onClick={() => setShowSettings((v) => !v)}
               >
                 {showSettings ? 'Close Settings' : 'Settings'}
+              </button>
+              <button
+                className="px-4 py-1.5 rounded-full text-sm border bg-white text-[#000000] border-[#70FF5A]"
+                onClick={() => setShowReferralModal(true)}
+              >
+                Referrals ({referralStats.totalReferrals})
               </button>
             </div>
             {showSettings && (
@@ -1097,6 +1156,57 @@ export default function Home() {
       </WalletCheck>
     </main>
     <BottomNav />
+    
+    {/* Referral Modal */}
+    {showReferralModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-black">Referral Program</h2>
+            <button
+              onClick={() => setShowReferralModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[#70FF5A]">{referralStats.totalReferrals}</div>
+              <div className="text-sm text-gray-600">Total Referrals</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[#70FF5A]">{referralStats.totalPoints}</div>
+              <div className="text-sm text-gray-600">Points Earned</div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Your Referral Link:</div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={getReferralLink()}
+                  readOnly
+                  className="flex-1 px-3 py-2 border rounded-lg text-sm bg-white"
+                />
+                <button
+                  onClick={copyReferralLink}
+                  className="px-4 py-2 bg-[#70FF5A] text-black rounded-lg text-sm font-medium hover:bg-[#5FE04A]"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            
+            <div className="text-xs text-gray-500 text-center">
+              Earn 2 points for each friend you refer! Share your link and start earning.
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 }

@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 import BottomNav from '../components/BottomNav';
-import { getEthPrice } from '@/lib/price';
 
 export default function LeaderboardPage() {
   return (
@@ -25,23 +24,7 @@ function LeaderboardTab() {
   const [rows, setRows] = React.useState<Array<TopRow>>([]);
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
-  const [ethPrice, setEthPrice] = React.useState<number | null>(null);
-
-  // Get payout amount from env
-  const payoutAmount = process.env.NEXT_PUBLIC_PAYOUT_AMOUNT_ETH || '0.00002';
-  const payoutEth = parseFloat(payoutAmount);
-
-  // Fetch ETH price
-  useEffect(() => {
-    getEthPrice().then(setEthPrice).catch(console.error);
-    
-    // Refresh price every 5 minutes
-    const interval = setInterval(() => {
-      getEthPrice().then(setEthPrice).catch(console.error);
-    }, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  // No longer need ETH price for points-based system
 
   useEffect(() => {
     const load = async () => {
@@ -127,13 +110,20 @@ function LeaderboardTab() {
                               r.rank === 2 ? '🥈' :
                               r.rank === 3 ? '🥉' : null;
             
-            // Calculate earnings
-            const ethEarned = r.wins * payoutEth;
-            const usdEarned = ethPrice ? (ethEarned * ethPrice).toFixed(2) : null;
+            // Calculate points (no longer showing earnings)
+            const totalGames = r.wins + r.draws + r.losses;
             
+            const handleProfileClick = () => {
+              if (r.alias) {
+                // Open Farcaster profile
+                window.open(`https://warpcast.com/${r.alias}`, '_blank');
+              }
+            };
+
             return (
               <div key={r.rank} 
-                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6]">
+                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6] hover:shadow-md transition-shadow cursor-pointer"
+                onClick={handleProfileClick}>
                 <div className="flex items-center gap-4">
                   {trophyEmoji ? (
                     <div className="w-8 h-8 flex items-center justify-center text-xl">
@@ -152,14 +142,16 @@ function LeaderboardTab() {
                     className="rounded-full object-cover"
                   />
                   <div>
-                    <div className="font-medium text-lg text-black">
+                    <div className="font-medium text-lg text-black flex items-center gap-2">
                       {r.alias ? `@${r.alias}` : `${r.address.slice(0,6)}…${r.address.slice(-4)}`}
+                      {r.alias && (
+                        <span className="text-xs text-[#9CA3AF] bg-[#F3F4F6] px-2 py-1 rounded-full">
+                          View Profile
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-[#70FF5A] font-semibold">
-                      ${usdEarned || '0.00'} earned
-                      {/* <span className="text-xs text-[#9CA3AF] ml-1">
-                        ({ethEarned.toFixed(5)} ETH)
-                      </span> */}
+                      {r.points} points • {totalGames} games
                     </div>
                   </div>
                 </div>

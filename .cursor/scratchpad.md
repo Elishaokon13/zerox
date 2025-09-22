@@ -246,3 +246,94 @@ We need to implement a complete Farcaster sharing functionality for the TicTacTo
 - Keep consistent visual style with the game theme
 - Ensure proper error handling for share data
 - Maintain clear separation between share data and display components
+
+# Points-Based System Implementation
+
+## Background and Motivation
+Pivoted from immediate per-win payouts to a points-based system with weekly top 3 rewards. This improves scalability, reduces gas costs, and creates more engaging competition. Added Farcaster profile integration for social dynamics.
+
+## Key Changes Made
+
+### 1. Points System
+- **Game Logic**: Updated `app/page.tsx` to award points instead of immediate payouts
+  - Win: +3 points
+  - Loss: -1 point  
+  - Draw: +1 point
+- **Leaderboard**: Updated to show points and total games instead of earnings
+- **Database**: Added `weekly_payouts` table for tracking weekly rewards
+
+### 2. Weekly Payout System
+- **API**: Created `/api/weekly-payout` endpoint for managing weekly rewards
+  - 1st place: 0.01 ETH
+  - 2nd place: 0.005 ETH
+  - 3rd place: 0.002 ETH
+- **Admin**: Created admin page at `/admin/weekly-payouts` for triggering payouts
+- **Database**: Added weekly_payouts table with proper RLS policies
+
+### 3. Farcaster Profile Integration
+- **Leaderboard**: Added clickable profiles that open Warpcast
+- **UX**: Added "View Profile" badges for users with Farcaster aliases
+- **Social**: Enables easy messaging and social interaction between players
+
+### 4. Database Schema Updates
+- Added `weekly_payouts` table with proper indexing
+- Added RLS policies for security
+- Maintains backward compatibility with existing tables
+
+## Success Criteria Met
+- ✅ Points system replaces immediate payouts
+- ✅ Weekly top 3 rewards system implemented
+- ✅ Farcaster profile integration added
+- ✅ Admin interface for managing payouts
+- ✅ Database schema updated with proper security
+- ✅ No linting errors introduced
+
+## Next Steps
+- Set up automated weekly payout cron job
+- Consider adding more social features (follow, challenge)
+- Add weekly payout notifications
+- Consider seasonal rewards beyond weekly
+
+# Updated Points System & Referral Feature
+
+## Background and Motivation
+Updated the points system to make wins and losses equal (2 points each) for better balance, and added a referral system to reward users for bringing in new players.
+
+## Key Changes Made
+
+### 1. Updated Points System
+- **Win**: +2 points (was +3)
+- **Loss**: +2 points (was -1) 
+- **Draw**: +1 point (unchanged)
+- **Rationale**: Both wins and losses now contribute equally to leaderboard, encouraging more gameplay
+
+### 2. Referral System
+- **Reward**: 2 points per successful referral
+- **Database**: Added `referrals` table with proper indexing and RLS policies
+- **API**: Created `/api/referral` endpoint for processing referrals
+- **UI**: Added referral modal with stats and copyable referral links
+- **Auto-processing**: Referrals processed automatically when users visit with `?ref=address` parameter
+
+### 3. Database Schema Updates
+- Added `referrals` table with unique constraint on referrer/referred pairs
+- Added proper RLS policies for security
+- Maintains referential integrity
+
+### 4. UI Enhancements
+- **Referral Button**: Shows total referrals count in main UI
+- **Referral Modal**: Displays stats, referral link, and copy functionality
+- **Auto-cleanup**: Removes referral parameter from URL after processing
+
+## Success Criteria Met
+- ✅ Wins and losses both give 2 points
+- ✅ Referral system implemented with 2 points per referral
+- ✅ Database schema updated with proper security
+- ✅ UI components added for referral management
+- ✅ Automatic referral processing on page load
+- ✅ No linting errors introduced
+
+## How It Works Now
+1. **Gameplay**: Both wins and losses earn 2 points, draws earn 1 point
+2. **Referrals**: Users get referral links, earn 2 points when someone uses their link
+3. **Leaderboard**: Shows points and games played, with Farcaster profile integration
+4. **Weekly Payouts**: Top 3 players get ETH rewards every Monday

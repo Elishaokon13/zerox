@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     const addr = address.toLowerCase();
     const season = seasonStartISO();
-    const delta = { win: { w: 1, d: 0, l: 0, p: 3 }, draw: { w: 0, d: 1, l: 0, p: 1 }, loss: { w: 0, d: 0, l: 1, p: 0 } }[result];
+    const delta = { win: { w: 1, d: 0, l: 0, p: 2 }, draw: { w: 0, d: 1, l: 0, p: 1 }, loss: { w: 0, d: 0, l: 1, p: 2 } }[result];
 
     // Upsert season row
     // Get the latest entry for this address in this season

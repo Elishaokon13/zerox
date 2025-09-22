@@ -102,6 +102,36 @@ create table if not exists public.charge_logs (
 );
 create index if not exists charge_logs_day_idx on public.charge_logs (day);
 
+-- 6c) Weekly payouts for top 3 leaderboard users
+create table if not exists public.weekly_payouts (
+  week_start date not null,
+  rank integer not null,
+  address text not null,
+  alias text,
+  amount_eth numeric not null,
+  tx_hash text,
+  paid_at timestamptz,
+  inserted_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint weekly_payouts_pkey primary key (week_start, rank)
+);
+create index if not exists weekly_payouts_week_idx on public.weekly_payouts (week_start);
+create index if not exists weekly_payouts_address_idx on public.weekly_payouts (address);
+
+-- 6d) Referral system for rewarding referrals
+create table if not exists public.referrals (
+  id uuid not null default gen_random_uuid(),
+  referrer_address text not null,
+  referred_address text not null,
+  points_awarded integer not null default 2,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint referrals_pkey primary key (id),
+  constraint referrals_unique unique (referrer_address, referred_address)
+);
+create index if not exists referrals_referrer_idx on public.referrals (referrer_address);
+create index if not exists referrals_referred_idx on public.referrals (referred_address);
+
 -- 7) User Notification Tokens (for Farcaster Mini App notifications)
 create table if not exists public.user_notifications (
   id uuid not null default gen_random_uuid(),
@@ -275,6 +305,8 @@ alter table public.user_notifications enable row level security;
 alter table public.brackets enable row level security;
 alter table public.bracket_players enable row level security;
 alter table public.bracket_matches enable row level security;
+alter table public.weekly_payouts enable row level security;
+alter table public.referrals enable row level security;
 
 -- PVP feature removed - table and related objects deleted
 
@@ -373,6 +405,28 @@ do $$ begin
   end if;
   if not exists (select 1 from pg_policies where policyname = 'games_update') then
     create policy games_update on public.game_sessions for update using (true) with check (true);
+  end if;
+end $$;
+
+-- Policies for weekly payouts
+do $$ begin
+  if not exists (select 1 from pg_policies where policyname = 'weekly_payouts_select') then
+    create policy weekly_payouts_select on public.weekly_payouts for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where policyname = 'weekly_payouts_upsert') then
+    create policy weekly_payouts_insert on public.weekly_payouts for insert with check (true);
+    create policy weekly_payouts_update on public.weekly_payouts for update using (true) with check (true);
+  end if;
+end $$;
+
+-- Policies for referrals
+do $$ begin
+  if not exists (select 1 from pg_policies where policyname = 'referrals_select') then
+    create policy referrals_select on public.referrals for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where policyname = 'referrals_upsert') then
+    create policy referrals_insert on public.referrals for insert with check (true);
+    create policy referrals_update on public.referrals for update using (true) with check (true);
   end if;
 end $$;
 
