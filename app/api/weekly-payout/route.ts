@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { createWalletClient, http, parseEther, isAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
