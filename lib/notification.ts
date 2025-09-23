@@ -1,4 +1,4 @@
-import type { MiniAppNotificationDetails } from "@farcaster/frame-sdk";
+import type { MiniAppNotificationDetails } from "@farcaster/miniapp-sdk";
 import { supabase } from "./supabase";
 
 export async function getUserNotificationDetails(

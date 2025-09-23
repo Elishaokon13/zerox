@@ -11,7 +11,7 @@ export async function GET() {
 
   if (error) return NextResponse.json({ top: [] });
 
-  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
+  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; fid?: number; }, i: number) => ({ 
     rank: i + 1, 
     address: r.address, 
     alias: r.alias ?? undefined, 
@@ -19,7 +19,8 @@ export async function GET() {
     wins: Number(r.wins), 
     draws: Number(r.draws), 
     losses: Number(r.losses), 
-    points: Number(r.points)
+    points: Number(r.points),
+    fid: r.fid
   }));
 
   return NextResponse.json({ top });

@@ -337,3 +337,48 @@ Updated the points system to make wins and losses equal (2 points each) for bett
 2. **Referrals**: Users get referral links, earn 2 points when someone uses their link
 3. **Leaderboard**: Shows points and games played, with Farcaster profile integration
 4. **Weekly Payouts**: Top 3 players get ETH rewards every Monday
+
+# Enhanced Farcaster Profile Integration
+
+## Background and Motivation
+Updated the leaderboard to make profile pictures clickable and ensure they open in the Farcaster/Base app instead of as external links, improving the social experience.
+
+## Key Changes Made
+
+### 1. Clickable Profile Pictures
+- **Profile Pictures**: Now clickable with hover effects and visual indicators
+- **Hover Effects**: Scale animation and border color change on hover
+- **Visual Indicator**: Small profile icon appears on hover for users with Farcaster aliases
+- **Tooltip**: Shows "View @username's profile" on hover
+
+### 2. Farcaster App Integration
+- **FID Support**: Added FID (Farcaster ID) data to leaderboard APIs
+- **MiniKit Integration**: Uses `viewProfile` function from Coinbase's MiniKit
+- **Fallback Handling**: Falls back to external Warpcast link if in-app opening fails
+- **Database Updates**: Updated both weekly and all-time leaderboard queries to include FID data
+
+### 3. Database Schema Updates
+- **Weekly Leaderboard**: Added FID join to `user_notifications` table
+- **All-Time Leaderboard**: Updated SQL function to include FID data
+- **Type Safety**: Updated TypeScript types to include optional FID field
+
+### 4. UI/UX Improvements
+- **Removed Text**: Removed "View Profile" text badges for cleaner look
+- **Hover States**: Added smooth transitions and visual feedback
+- **Accessibility**: Added proper tooltips and alt text
+- **Responsive**: Maintains mobile-friendly design
+
+## Success Criteria Met
+- ✅ Profile pictures are clickable and open in Farcaster app
+- ✅ FID data integrated into both leaderboard APIs
+- ✅ Proper fallback to external links when needed
+- ✅ Visual indicators show clickable state
+- ✅ Clean UI without cluttering text
+- ✅ No linting errors introduced
+
+## How It Works Now
+1. **Click Profile Picture**: Users can click on any profile picture in the leaderboard
+2. **In-App Opening**: Uses MiniKit's `viewProfile` function to open profiles in Farcaster/Base app
+3. **FID Priority**: Uses FID when available, falls back to alias if needed
+4. **External Fallback**: Opens Warpcast.com if in-app opening fails
+5. **Visual Feedback**: Hover effects and indicators show the profile is clickable

@@ -517,7 +517,7 @@ export default function Home() {
         console.error('Failed to record result:', error);
       }
     }
-  }, [gameStatus, resultRecorded, address, recordResult, context]);
+  }, [gameStatus, resultRecorded, address, recordResult, context, showToast]);
 
   // Game status effects (sounds, haptics, auto-restart)
   useEffect(() => {
@@ -548,7 +548,7 @@ export default function Home() {
       }, 1200);
       return () => clearTimeout(id);
     }
-  }, [gameStatus, startNewGameRound, playWin, hapticWin, playLoss, hapticLoss, playDraw, showToast]);
+  }, [gameStatus, startNewGameRound, showToast]);
 
   // Handle transaction completion and show modal
   useEffect(() => {

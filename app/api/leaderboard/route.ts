@@ -26,14 +26,33 @@ export async function GET() {
   // Get unique entries by address, taking the latest alias/pfp
   const { data, error } = await supabase
     .from('leaderboard_entries')
-    .select('address,alias,pfp_url,wins,draws,losses,points')
+    .select(`
+      address,
+      alias,
+      pfp_url,
+      wins,
+      draws,
+      losses,
+      points,
+      user_notifications(fid)
+    `)
     .eq('season', season)
     .order('points', { ascending: false })
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
     .limit(10);
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
-  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ rank: i + 1, address: r.address, alias: r.alias ?? undefined, pfpUrl: r.pfp_url ?? undefined, wins: r.wins, draws: r.draws, losses: r.losses, points: r.points }));
+  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; user_notifications?: { fid: number }[] | null; }, i: number) => ({ 
+    rank: i + 1, 
+    address: r.address, 
+    alias: r.alias ?? undefined, 
+    pfpUrl: r.pfp_url ?? undefined, 
+    wins: r.wins, 
+    draws: r.draws, 
+    losses: r.losses, 
+    points: r.points,
+    fid: r.user_notifications?.[0]?.fid
+  }));
   // Totals: sum payouts, charges, and total unique users this season
   let totalPayoutEth = 0;
   let totalChargeEth = 0;

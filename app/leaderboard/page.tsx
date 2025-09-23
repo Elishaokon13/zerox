@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 import BottomNav from '../components/BottomNav';
+import { useViewProfile } from '@coinbase/onchainkit/minikit';
 
 export default function LeaderboardPage() {
   return (
@@ -14,7 +15,7 @@ export default function LeaderboardPage() {
   );
 }
 
-type TopRow = { rank: number; address: string; alias?: string; pfpUrl?: string; wins: number; draws: number; losses: number; points: number };
+type TopRow = { rank: number; address: string; alias?: string; pfpUrl?: string; wins: number; draws: number; losses: number; points: number; fid?: number };
 type TabType = 'weekly' | 'alltime';
 
 function LeaderboardTab() {
@@ -24,6 +25,7 @@ function LeaderboardTab() {
   const [rows, setRows] = React.useState<Array<TopRow>>([]);
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
+  const viewProfile = useViewProfile();
   // No longer need ETH price for points-based system
 
   useEffect(() => {
@@ -115,15 +117,25 @@ function LeaderboardTab() {
             
             const handleProfileClick = () => {
               if (r.alias) {
-                // Open Farcaster profile
-                window.open(`https://warpcast.com/${r.alias}`, '_blank');
+                try {
+                  // Use FID if available, otherwise fall back to external link
+                  if (r.fid) {
+                    viewProfile(r.fid);
+                  } else {
+                    // Fallback to warpcast.com for alias
+                    window.open(`https://warpcast.com/${r.alias}`, '_blank');
+                  }
+                } catch (error) {
+                  console.error('Failed to open profile in app:', error);
+                  // Fallback to warpcast.com
+                  window.open(`https://warpcast.com/${r.alias}`, '_blank');
+                }
               }
             };
 
             return (
               <div key={r.rank} 
-                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6] hover:shadow-md transition-shadow cursor-pointer"
-                onClick={handleProfileClick}>
+                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6] hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                   {trophyEmoji ? (
                     <div className="w-8 h-8 flex items-center justify-center text-xl">
@@ -134,21 +146,22 @@ function LeaderboardTab() {
                       {r.rank}
                     </div>
                   )}
-                  <Image 
-                    src={src} 
-                    alt={r.alias || 'pfp'} 
-                    width={40} 
-                    height={40} 
-                    className="rounded-full object-cover"
-                  />
+                  <div 
+                    className="cursor-pointer hover:scale-105 transition-transform"
+                    onClick={handleProfileClick}
+                    title={r.alias ? `View @${r.alias}'s profile` : 'View profile'}
+                  >
+                    <Image 
+                      src={src} 
+                      alt={r.alias || 'pfp'} 
+                      width={40} 
+                      height={40} 
+                      className="rounded-full object-cover border-2 border-transparent hover:border-[#70FF5A] transition-colors"
+                    />
+                  </div>
                   <div>
-                    <div className="font-medium text-lg text-black flex items-center gap-2">
+                    <div className="font-medium text-lg text-black">
                       {r.alias ? `@${r.alias}` : `${r.address.slice(0,6)}…${r.address.slice(-4)}`}
-                      {r.alias && (
-                        <span className="text-xs text-[#9CA3AF] bg-[#F3F4F6] px-2 py-1 rounded-full">
-                          View Profile
-                        </span>
-                      )}
                     </div>
                     <div className="text-sm text-[#70FF5A] font-semibold">
                       {r.points} points • {totalGames} games

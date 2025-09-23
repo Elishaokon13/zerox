@@ -32,12 +32,13 @@ export async function GET() {
       homeUrl: URL,
       webhookUrl: `${URL}/api/webhook`,
       primaryCategory: process.env.NEXT_PUBLIC_APP_PRIMARY_CATEGORY,
-      tags: [],
+      tags: ["game", "tictactoe", "social"],
       heroImageUrl: process.env.NEXT_PUBLIC_APP_HERO_IMAGE,
       tagline: process.env.NEXT_PUBLIC_APP_TAGLINE,
       ogTitle: process.env.NEXT_PUBLIC_APP_OG_TITLE,
       ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION,
       ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE,
+      buttonTitle: process.env.NEXT_PUBLIC_APP_BUTTON_TITLE,
     }),
     "baseBuilder": {
     "allowedAddresses": ["0x95D5be26b1438Ba92DAfcBAB2bB2983b78dea0C6"]
