@@ -1,6 +1,5 @@
 'use client';
 
-import { useScoreboard } from '@/lib/useScoreboard';
 import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -15,6 +14,7 @@ import { hapticTap, hapticWin, hapticLoss } from '@/lib/haptics';
 import { useAccount, useSendTransaction, useSendCalls } from 'wagmi';
 import { encodeFunctionData } from 'viem';
 import { useMiniKit, useIsInMiniApp, useViewProfile } from '@coinbase/onchainkit/minikit';
+
 
 
 export default function Home() {
@@ -82,6 +82,7 @@ export default function Home() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
   const { isInMiniApp } = useIsInMiniApp();
   const viewProfile = useViewProfile();
+  // Removed useUnifiedAuth - not implemented
   // Simple toast
   const [toast, setToast] = useState<string | null>(null);
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2000); }, []);
@@ -135,18 +136,8 @@ export default function Home() {
       if (!address) return;
       if (!(gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw')) return;
       try {
-        const alias = context?.user && typeof context.user.username === 'string' ? context.user.username : undefined;
-        // Derive pfpUrl from context like in Navbar
-        let pfpUrl: string | undefined;
-        const u = context?.user as unknown as { pfpUrl?: unknown; pfp?: unknown; profile?: { pfp?: unknown; picture?: unknown } } | undefined;
-        const maybePfp = u?.pfpUrl ?? u?.pfp ?? u?.profile?.pfp ?? u?.profile?.picture;
-        if (typeof maybePfp === 'string') pfpUrl = maybePfp;
-        else if (maybePfp && typeof maybePfp === 'object') {
-          const cand = (['url','src','original','default','small','medium','large'] as const)
-            .map((k) => (maybePfp as Record<string, unknown>)[k])
-            .find((v) => typeof v === 'string');
-          if (typeof cand === 'string') pfpUrl = cand;
-        }
+        const alias = context?.user?.username;
+        const pfpUrl = context?.user?.pfpUrl;
         await fetch('/api/leaderboard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -167,9 +158,10 @@ export default function Home() {
 
   // Load referral stats
   const loadReferralStats = useCallback(async () => {
-    if (!address) return;
+    const userAddress = address;
+    if (!userAddress) return;
     try {
-      const response = await fetch(`/api/referral?address=${address}`);
+      const response = await fetch(`/api/referral?address=${userAddress}`);
       const data = await response.json();
       if (response.ok) {
         setReferralStats({
@@ -184,14 +176,24 @@ export default function Home() {
 
   // Generate referral link
   const getReferralLink = useCallback(() => {
-    if (!address) return '';
+    const userAddress = address;
+    console.log('getReferralLink called:', { address, userAddress });
+    if (!userAddress) return '';
     const baseUrl = process.env.NEXT_PUBLIC_URL || window.location.origin;
-    return `${baseUrl}?ref=${address}`;
+    const link = `${baseUrl}?ref=${userAddress}`;
+    console.log('Generated referral link:', link);
+    return link;
   }, [address]);
 
   // Copy referral link to clipboard
   const copyReferralLink = useCallback(async () => {
     const link = getReferralLink();
+    const userAddress = address;
+    console.log('copyReferralLink called:', { link, address, userAddress });
+    if (!link) {
+      showToast('No referral link available - address not found');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(link);
       showToast('Referral link copied!');
@@ -199,7 +201,7 @@ export default function Home() {
       console.error('Failed to copy link:', error);
       showToast('Failed to copy link');
     }
-  }, [getReferralLink, showToast]);
+  }, [getReferralLink, showToast, address]);
 
   // Load referral stats when address changes
   useEffect(() => {
@@ -210,15 +212,16 @@ export default function Home() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refAddress = urlParams.get('ref');
+    const userAddress = address;
     
-    if (refAddress && address && refAddress.toLowerCase() !== address.toLowerCase()) {
+    if (refAddress && userAddress && refAddress.toLowerCase() !== userAddress.toLowerCase()) {
       // Process referral
       fetch('/api/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referrerAddress: refAddress,
-          referredAddress: address
+          referredAddress: userAddress
         })
       }).then(response => {
         if (response.ok) {
@@ -315,7 +318,11 @@ export default function Home() {
 
   // getBestPlayerMove no longer used (quick actions removed)
 
-  const { recordResult, score } = useScoreboard();
+  // Removed useUnifiedScoreboard - not implemented
+  const recordResult = useCallback((result: string) => {}, []); // Placeholder
+  const score = { wins: 0, draws: 0, losses: 0 }; // Placeholder
+  const scoreboardAddress = address; // Use regular address
+  const scoreboardAuthenticated = !!address; // Use regular auth
 
   const handleCellClick = async (index: number) => {
     if (mustSettle) return;
@@ -489,19 +496,36 @@ export default function Home() {
     if ((gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw') && !resultRecorded) {
       const result = gameStatus === 'won' ? 'win' : gameStatus === 'lost' ? 'loss' : 'draw';
       
+      console.log('Game ended, attempting onchain recording:', {
+        result,
+        scoreboardAddress,
+        scoreboardAuthenticated,
+        address,
+        authType: 'wallet'
+      });
+      
       // Record result onchain first
       try { 
-        recordResult(result);
-        setResultRecorded(true);
+        if (scoreboardAddress && scoreboardAuthenticated) {
+          recordResult(result);
+          setResultRecorded(true);
+          console.log('Onchain recording initiated for:', scoreboardAddress);
+        } else {
+          console.warn('Cannot record onchain - no address or not authenticated:', {
+            scoreboardAddress,
+            scoreboardAuthenticated
+          });
+        }
         
-        // Update points system instead of immediate payouts
-        if (address) {
+        // Update points system (works for all users)
+        const userAddress = address;
+        if (userAddress) {
           // Update leaderboard with points
           fetch('/api/leaderboard', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              address, 
+              address: userAddress, 
               result,
               alias: context?.user?.username,
               pfpUrl: context?.user?.pfpUrl
@@ -517,7 +541,7 @@ export default function Home() {
         console.error('Failed to record result:', error);
       }
     }
-  }, [gameStatus, resultRecorded, address, recordResult, context, showToast]);
+  }, [gameStatus, resultRecorded, address, recordResult, context, showToast, scoreboardAddress, scoreboardAuthenticated]);
 
   // Game status effects (sounds, haptics, auto-restart)
   useEffect(() => {
@@ -771,7 +795,7 @@ export default function Home() {
           }
         });
     }
-  }, [gameStatus, address, difficulty, playerSymbol, context?.user, showToast, resultRecorded]);*/
+  }, [gameStatus, address, difficulty, playerSymbol, context, showToast, resultRecorded]);*/
 
   // Handle direct challenges to other players
   const handleChallenge = useCallback(async (username?: string) => {
@@ -1058,7 +1082,7 @@ export default function Home() {
           )}
           
           {/* Direct Challenge UI */}
-          <div className="mt-4 w-full max-w-md p-4 rounded-xl bg-gradient-to-r from-[#066c00] to-[#0a8500] border-2 border-[#70FF5A]">
+          {/* <div className="mt-4 w-full max-w-md p-4 rounded-xl bg-gradient-to-r from-[#066c00] to-[#0a8500] border-2 border-[#70FF5A]">
             <div className="text-lg font-bold mb-2 text-center text-[#70FF5A]">🎮 Challenge Friends</div>
             <div className="flex gap-2">
               <input
@@ -1098,7 +1122,7 @@ export default function Home() {
             <div className="text-xs text-center mt-2 text-[#b6f569] font-medium">
               Type a username and press Enter or click Send Challenge
             </div>
-          </div>
+          </div> */}
           {/* Attribution for cast embed entry */}
           {(() => {
             const loc = context?.location as unknown;
@@ -1172,6 +1196,8 @@ export default function Home() {
           </div>
           
           <div className="space-y-4">
+            {/* Debug info */}
+            {/* Debug info removed */}
             <div className="text-center">
               <div className="text-2xl font-bold text-[#70FF5A]">{referralStats.totalReferrals}</div>
               <div className="text-sm text-gray-600">Total Referrals</div>
@@ -1189,7 +1215,7 @@ export default function Home() {
                   type="text"
                   value={getReferralLink()}
                   readOnly
-                  className="flex-1 px-3 py-2 border rounded-lg text-sm bg-white"
+                  className="flex-1 px-3 py-2 border rounded-lg text-sm text-black bg-white"
                 />
                 <button
                   onClick={copyReferralLink}

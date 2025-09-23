@@ -23,7 +23,8 @@ function seasonEndISO(): string {
 export async function GET() {
   const season = seasonStartISO();
   if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
-  // Get unique entries by address, taking the latest alias/pfp
+  
+  // Try without the user_notifications join first
   const { data, error } = await supabase
     .from('leaderboard_entries')
     .select(`
@@ -33,16 +34,16 @@ export async function GET() {
       wins,
       draws,
       losses,
-      points,
-      user_notifications(fid)
+      points
     `)
     .eq('season', season)
     .order('points', { ascending: false })
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
     .limit(10);
+  
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
-  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; user_notifications?: { fid: number }[] | null; }, i: number) => ({ 
+  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
     rank: i + 1, 
     address: r.address, 
     alias: r.alias ?? undefined, 
@@ -51,7 +52,7 @@ export async function GET() {
     draws: r.draws, 
     losses: r.losses, 
     points: r.points,
-    fid: r.user_notifications?.[0]?.fid
+    fid: undefined // FID will be undefined for now since we removed the join
   }));
   // Totals: sum payouts, charges, and total unique users this season
   let totalPayoutEth = 0;

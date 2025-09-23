@@ -164,13 +164,13 @@ function LeaderboardTab() {
                       {r.alias ? `@${r.alias}` : `${r.address.slice(0,6)}…${r.address.slice(-4)}`}
                     </div>
                     <div className="text-sm text-[#70FF5A] font-semibold">
-                      {r.points} points • {totalGames} games
+                      {totalGames} games
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-black text-black">
-                    {r.points}
+                    {r.points} pts
                   </div>
                   {/* <div className="text-sm text-[#9CA3AF]">
                     {r.wins}W {r.draws}D {r.losses}L
