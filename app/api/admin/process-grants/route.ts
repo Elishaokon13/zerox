@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { checkWalletBalance, processGrantPayments, updatePaymentStatus, isGrantSystemReady } from '@/lib/grant-payment';
+import { checkWalletBalance, processGrantPayments, isGrantSystemReady } from '@/lib/grant-payment';
 
 export async function POST() {
   if (!supabase) {
@@ -57,12 +57,17 @@ export async function POST() {
 
     // Update database with results
     const updatePromises = paymentResults.results.map(async (result) => {
-      const updateData: any = {
+      const updateData: { tx_status: string; tx_hash?: string; paid_at?: string } = {
         tx_status: result.status === 'success' ? 'completed' : 'failed'
       };
 
       if (result.txHash) {
         updateData.tx_hash = result.txHash;
+      }
+
+      if (!supabase) {
+        console.error('Database not available');
+        return;
       }
 
       const { error: updateError } = await supabase

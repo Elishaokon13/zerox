@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 
 interface WeeklyPayout {
@@ -66,7 +66,7 @@ export default function WeeklyPayoutsPage() {
     }
   };
 
-  const loadPayoutsData = async () => {
+  const loadPayoutsData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -85,7 +85,7 @@ export default function WeeklyPayoutsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWeek]);
 
   const handleProcessPayouts = async () => {
     setLoading(true);
@@ -146,7 +146,7 @@ export default function WeeklyPayoutsPage() {
 
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, currentWeek]);
+  }, [isAuthenticated, currentWeek, loadPayoutsData]);
 
   // Show authentication form if not authenticated
   if (!isAuthenticated) {
@@ -353,7 +353,7 @@ export default function WeeklyPayoutsPage() {
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
-            No data available. Click "Refresh Data" to load payouts information.
+            No data available. Click &quot;Refresh Data&quot; to load payouts information.
           </div>
         )}
       </div>

@@ -80,13 +80,13 @@ export async function GET() {
     }
 
     // Calculate metrics
-    const totalPoints = allTimeData?.reduce((sum: number, player: any) => sum + (Number(player.points) || 0), 0) || 0;
+    const totalPoints = allTimeData?.reduce((sum: number, player: { points: number }) => sum + (Number(player.points) || 0), 0) || 0;
     const totalPlayers = uniquePlayers?.length || 0; // Use actual unique players count
     const weeklyActiveUsers = weeklyData?.length || 0;
     
-    const totalPayouts = payoutLogs?.reduce((sum: number, log: any) => sum + (Number(log.total_amount) || 0), 0) || 0;
-    const totalCharges = chargeLogs?.reduce((sum: number, log: any) => sum + (Number(log.total_amount) || 0), 0) || 0;
-    const currentWeekPayouts = weeklyPayouts?.reduce((sum: number, payout: any) => sum + (Number(payout.amount_eth) || 0), 0) || 0;
+    const totalPayouts = payoutLogs?.reduce((sum: number, log: { total_amount: number }) => sum + (Number(log.total_amount) || 0), 0) || 0;
+    const totalCharges = chargeLogs?.reduce((sum: number, log: { total_amount: number }) => sum + (Number(log.total_amount) || 0), 0) || 0;
+    const currentWeekPayouts = weeklyPayouts?.reduce((sum: number, payout: { amount_eth: number }) => sum + (Number(payout.amount_eth) || 0), 0) || 0;
 
     // Get recent game sessions for activity feed
     const { data: recentSessions, error: sessionsError } = await supabase
@@ -100,7 +100,7 @@ export async function GET() {
     }
 
     // Format recent activity
-    const recentActivity = recentSessions?.map((session: any) => ({
+    const recentActivity = recentSessions?.map((session: { result: string; address: string; created_at: string; settled: boolean }) => ({
       type: session.result === 'win' ? 'payout' : session.result === 'loss' ? 'charge' : 'game',
       amount: session.result === 'win' ? 0.00002 : session.result === 'loss' ? 0.00002 : undefined,
       address: session.address,

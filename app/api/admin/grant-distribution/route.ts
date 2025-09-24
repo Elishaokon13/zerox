@@ -38,10 +38,10 @@ export async function GET() {
     }
 
     // Calculate total points for top 3
-    const totalPoints = allTimeData.reduce((sum: number, player: any) => sum + (Number(player.points) || 0), 0);
+    const totalPoints = allTimeData.reduce((sum: number, player: { points: number }) => sum + (Number(player.points) || 0), 0);
 
     // Calculate distribution percentages and amounts
-    const distribution = allTimeData.map((player: any, index: number) => {
+    const distribution = allTimeData.map((player: { points: number; address: string; alias?: string }, index: number) => {
       const points = Number(player.points) || 0;
       const percentage = totalPoints > 0 ? (points / totalPoints) * 100 : 0;
       const weeklyAmount = totalPoints > 0 ? (points / totalPoints) * 80 : 0; // $80 weekly budget
@@ -58,7 +58,7 @@ export async function GET() {
     });
 
     // Calculate totals
-    const totalDistributed = distribution.reduce((sum: number, player: any) => sum + player.totalAmount, 0);
+    const totalDistributed = distribution.reduce((sum: number, player: { totalAmount: number }) => sum + player.totalAmount, 0);
     const remainingGrant = 1200 - totalDistributed;
 
     return NextResponse.json({
@@ -90,14 +90,14 @@ export async function POST(request: Request) {
     }
 
     // Record grant distributions for the week
-    const grantRecords = distributions.map((dist: any) => ({
+    const grantRecords = distributions.map((dist: { address: string; alias?: string; points: number; percentage: number; weeklyAmount: number }) => ({
       week_start: week,
       recipient_address: dist.address,
       recipient_alias: dist.alias,
       points: dist.points,
       percentage: dist.percentage,
       amount_usd: dist.weeklyAmount,
-      amount_eth: dist.amountEth || 0,
+      amount_eth: dist.weeklyAmount || 0,
       distributed_at: new Date().toISOString()
     }));
 

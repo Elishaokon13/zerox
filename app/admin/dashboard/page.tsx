@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
       const allTimeRes = await fetch('/api/leaderboard/alltime');
       const allTimeData = await allTimeRes.json();
       
-      const topPlayers = allTimeData.top?.slice(0, 3).map((player: any, index: number) => ({
+      const topPlayers = allTimeData.top?.slice(0, 3).map((player: { address: string; alias?: string; points: number; wins: number; draws: number; losses: number }, index: number) => ({
         rank: index + 1,
         address: player.address,
         alias: player.alias,

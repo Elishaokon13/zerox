@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
 
 interface GrantDistribution {
   currentWeek: string;
@@ -33,28 +32,27 @@ interface GrantHistory {
   distributed_at: string;
 }
 
-interface GrantHistoryResponse {
-  history: GrantHistory[];
-  summary: {
-    totalDistributed: number;
-    totalRecords: number;
-    completedRecords: number;
-    remainingGrant: number;
-  };
-}
 
 export default function GrantDistributionPage() {
   const [grantData, setGrantData] = useState<GrantDistribution | null>(null);
   const [grantHistory, setGrantHistory] = useState<GrantHistory[]>([]);
-  const [grantSummary, setGrantSummary] = useState<any>(null);
+  const [grantSummary, setGrantSummary] = useState<{
+    totalDistributed: number;
+    totalRecords: number;
+    completedRecords: number;
+    remainingGrant: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ethPrice, setEthPrice] = useState<number>(0);
   const [farcasterUsername, setFarcasterUsername] = useState<string>('');
-  const [systemStatus, setSystemStatus] = useState<any>(null);
+  const [systemStatus, setSystemStatus] = useState<{
+    systemReady: boolean;
+    balance: { balanceEth: number };
+    pendingDistributions: number;
+  } | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  const { address } = useAccount();
 
   // Authentication check
   useEffect(() => {
@@ -176,9 +174,6 @@ export default function GrantDistributionPage() {
     }
   };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat().format(num);
-  };
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -195,13 +190,6 @@ export default function GrantDistributionPage() {
     return `${eth.toFixed(6)} ETH`;
   };
 
-  const formatUSD = (eth: number) => {
-    if (eth === 0) return '$0.00';
-    const usdValue = eth * ethPrice;
-    if (usdValue < 1) return `$${usdValue.toFixed(4)}`;
-    if (usdValue < 100) return `$${usdValue.toFixed(2)}`;
-    return `$${usdValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  };
 
   const getTimeAgo = (timestamp: string) => {
     const now = new Date();
@@ -313,7 +301,7 @@ export default function GrantDistributionPage() {
                   disabled={grantData.distribution.length === 0}
                   className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  Record This Week's Distribution
+                  Record This Week&apos;s Distribution
                 </button>
               </div>
             </div>
@@ -344,7 +332,7 @@ export default function GrantDistributionPage() {
 
             {/* Current Week's Top 3 */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-800">This Week's Top 3 Players</h3>
+              <h3 className="font-semibold text-gray-800">This Week&apos;s Top 3 Players</h3>
               {grantData.distribution.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-lg mb-2">📊</div>

@@ -37,14 +37,14 @@ export async function POST(request: Request) {
     }
 
     // Record grant distributions with pending status
-    const grantRecords = distributions.map((dist: any) => ({
+    const grantRecords = distributions.map((dist: { address: string; alias?: string; points: number; percentage: number; weeklyAmount: number }) => ({
       week_start: week,
       recipient_address: dist.address,
       recipient_alias: dist.alias,
       points: dist.points,
       percentage: dist.percentage,
       amount_usd: dist.weeklyAmount,
-      amount_eth: dist.amountEth || 0,
+      amount_eth: dist.weeklyAmount || 0,
       tx_status: 'pending'
     }));
 
