@@ -59,12 +59,25 @@ export const SCOREBOARD_ABI = [
 export function useScoreboard() {
   const { address } = useAccount();
 
-  const { data: score, refetch: refetchScore } = useContractRead({
+  const { data: score, refetch: refetchScore, error: scoreError } = useContractRead({
     address: SCOREBOARD_ADDRESS,
     abi: SCOREBOARD_ABI,
     functionName: 'getScore',
     args: address ? [address] : undefined,
   });
+
+  // Debug logging
+  useEffect(() => {
+    if (scoreError) {
+      console.error('Scoreboard contract error:', scoreError);
+      console.error('Contract address:', SCOREBOARD_ADDRESS);
+    }
+    if (address) {
+      console.log('Fetching score for address:', address);
+      console.log('Score data:', score);
+      console.log('Contract address:', SCOREBOARD_ADDRESS);
+    }
+  }, [address, score, scoreError]);
 
   const { writeContract: recordGame, data: recordGameData } = useContractWrite();
 

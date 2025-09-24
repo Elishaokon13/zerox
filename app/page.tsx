@@ -83,7 +83,7 @@ export default function Home() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
   const { isInMiniApp } = useIsInMiniApp();
   const viewProfile = useViewProfile();
-  const { recordResult: recordOnchain, isRecording } = useScoreboard();
+  const { recordResult: recordOnchain, isRecording, score: onchainScore } = useScoreboard();
   // Removed useUnifiedAuth - not implemented
   // Simple toast
   const [toast, setToast] = useState<string | null>(null);
@@ -304,8 +304,12 @@ export default function Home() {
   // getBestPlayerMove no longer used (quick actions removed)
 
   // Removed useUnifiedScoreboard - not implemented
-  const recordResult = useCallback((result: string) => {}, []); // Placeholder
-  const score = { wins: 0, draws: 0, losses: 0 }; // Placeholder
+  const recordResult = useCallback((result: 'win' | 'loss' | 'draw') => {
+    if (address && !isRecording) {
+      recordOnchain(result);
+    }
+  }, [address, isRecording, recordOnchain]);
+  const score = onchainScore || { wins: 0, draws: 0, losses: 0 };
   const scoreboardAddress = address; // Use regular address
   const scoreboardAuthenticated = !!address; // Use regular auth
 

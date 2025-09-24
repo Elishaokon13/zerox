@@ -4,6 +4,7 @@ import Image from 'next/image';
 import BottomNav from '../components/BottomNav';
 import { useViewProfile } from '@coinbase/onchainkit/minikit';
 import { useScoreboard } from '@/lib/useScoreboard';
+import { useAccount } from 'wagmi';
 
 export default function LeaderboardPage() {
   return (
@@ -27,7 +28,8 @@ function LeaderboardTab() {
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
   const viewProfile = useViewProfile();
-  const { score: onchainScore } = useScoreboard();
+  const { address } = useAccount();
+  const { score: onchainScore, isRecording } = useScoreboard();
   // No longer need ETH price for points-based system
 
   useEffect(() => {
@@ -104,9 +106,14 @@ function LeaderboardTab() {
       </div>
 
       {activeTab === 'onchain' ? (
-        // Onchain scores display
+       
         <div className="space-y-3">
-          {onchainScore ? (
+          {isRecording ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#70FF5A]"></div>
+              <div className="text-sm text-[#9CA3AF] mt-4">Recording game result...</div>
+            </div>
+          ) : onchainScore ? (
             <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6]">
               <div className="flex items-center gap-4">
                 <div className="w-8 h-8 flex items-center justify-center text-[#70FF5A] font-medium">
@@ -129,8 +136,20 @@ function LeaderboardTab() {
               </div>
             </div>
           ) : (
-            <div className="text-sm text-[#9CA3AF] text-center">
-              Connect your wallet to view onchain scores
+            <div className="text-center py-8">
+              <div className="text-sm text-[#9CA3AF] mb-2">
+                {address ? 'No onchain games recorded yet' : 'Connect your wallet to view onchain scores'}
+              </div>
+              {address && (
+                <div className="text-xs text-[#9CA3AF] mb-4">
+                  Play games to record your results onchain
+                </div>
+              )}
+              {address && (
+                <div className="text-xs text-[#9CA3AF]">
+                  Contract: 0x6303d8208FA29C20607BDD7DA3e5dD8f68E5146C
+                </div>
+              )}
             </div>
           )}
         </div>
