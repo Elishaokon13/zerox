@@ -13,6 +13,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.warpcast.com' },
       { protocol: 'https', hostname: 'api.dicebear.com' },
       { protocol: 'https', hostname: 'tba-mobile.mypinata.cloud' },
+      { protocol: 'https', hostname: 'farcaster.xyz' },
     ],
   },
 };

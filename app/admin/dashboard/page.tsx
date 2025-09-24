@@ -399,10 +399,16 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <a
-                href="/admin/weekly-payouts"
+                href="/admin/grant-distribution"
                 className="block w-full px-4 py-2 bg-[#70FF5A] text-black text-center rounded-md hover:bg-[#5FE04A] transition-colors"
               >
-                Manage Weekly Payouts
+                Manage Grant Distribution
+              </a>
+              <a
+                href="/admin/weekly-payouts"
+                className="block w-full px-4 py-2 bg-purple-500 text-white text-center rounded-md hover:bg-purple-600 transition-colors"
+              >
+                Weekly Payouts
               </a>
               <a
                 href="/admin/notify"
@@ -419,6 +425,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
 
         {/* Top Players Table */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">

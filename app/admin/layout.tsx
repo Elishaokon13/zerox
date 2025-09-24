@@ -12,7 +12,7 @@ export default function AdminLayout({
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/weekly-payouts', label: 'Weekly Payouts', icon: '💰' },
+    { href: '/admin/grant-distribution', label: 'Grant Distribution', icon: '🎁' },
     { href: '/admin/notify', label: 'Notifications', icon: '🔔' },
   ];
 

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import Image from 'next/image';
 import BottomNav from '../components/BottomNav';
 import { useViewProfile } from '@coinbase/onchainkit/minikit';
+import { useScoreboard } from '@/lib/useScoreboard';
 
 export default function LeaderboardPage() {
   return (
@@ -16,7 +17,7 @@ export default function LeaderboardPage() {
 }
 
 type TopRow = { rank: number; address: string; alias?: string; pfpUrl?: string; wins: number; draws: number; losses: number; points: number; fid?: number };
-type TabType = 'weekly' | 'alltime';
+type TabType = 'weekly' | 'alltime' | 'onchain';
 
 function LeaderboardTab() {
   const [loading, setLoading] = React.useState(true);
@@ -26,6 +27,7 @@ function LeaderboardTab() {
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
   const viewProfile = useViewProfile();
+  const { score: onchainScore } = useScoreboard();
   // No longer need ETH price for points-based system
 
   useEffect(() => {
@@ -89,9 +91,50 @@ function LeaderboardTab() {
         >
           ALL TIME
         </button>
+        <button 
+          className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
+            activeTab === 'onchain' 
+              ? 'text-black border-black' 
+              : 'text-[#9CA3AF] border-transparent'
+          }`}
+          onClick={() => setActiveTab('onchain')}
+        >
+          ONCHAIN
+        </button>
       </div>
 
-      {loading ? (
+      {activeTab === 'onchain' ? (
+        // Onchain scores display
+        <div className="space-y-3">
+          {onchainScore ? (
+            <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-[#F3F4F6]">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 flex items-center justify-center text-[#70FF5A] font-medium">
+                  🏆
+                </div>
+                <div>
+                  <div className="font-medium text-lg text-black">Your Onchain Stats</div>
+                  <div className="text-sm text-[#70FF5A] font-semibold">
+                    {onchainScore.wins + onchainScore.losses + onchainScore.draws} games
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-black text-black">
+                  {onchainScore.wins}W {onchainScore.draws}D {onchainScore.losses}L
+                </div>
+                <div className="text-sm text-[#9CA3AF]">
+                  Onchain
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-[#9CA3AF] text-center">
+              Connect your wallet to view onchain scores
+            </div>
+          )}
+        </div>
+      ) : loading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 rounded-2xl bg-[#F3F4F6] animate-pulse" />

@@ -14,6 +14,7 @@ import { hapticTap, hapticWin, hapticLoss } from '@/lib/haptics';
 import { useAccount, useSendTransaction, useSendCalls } from 'wagmi';
 import { encodeFunctionData } from 'viem';
 import { useMiniKit, useIsInMiniApp, useViewProfile } from '@coinbase/onchainkit/minikit';
+import { useScoreboard } from '@/lib/useScoreboard';
 
 
 
@@ -82,6 +83,7 @@ export default function Home() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
   const { isInMiniApp } = useIsInMiniApp();
   const viewProfile = useViewProfile();
+  const { recordResult: recordOnchain, isRecording } = useScoreboard();
   // Removed useUnifiedAuth - not implemented
   // Simple toast
   const [toast, setToast] = useState<string | null>(null);
@@ -150,11 +152,10 @@ export default function Home() {
 
 
 
-  // Gate gameplay if an unpaid loss settlement exists
-  const [mustSettle, setMustSettle] = useState(false);
-  const [settlingLoss, setSettlingLoss] = useState(false);
   const [referralStats, setReferralStats] = useState({ totalReferrals: 0, totalPoints: 0 });
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const [farcasterUsername, setFarcasterUsername] = useState<string>('');
+  const [farcasterPfpUrl, setFarcasterPfpUrl] = useState<string>('');
 
   // Load referral stats
   const loadReferralStats = useCallback(async () => {
@@ -239,22 +240,6 @@ export default function Home() {
     }
   }, [address, loadReferralStats, showToast]);
 
-  useEffect(() => {
-    const check = async () => {
-      if (!address) { setMustSettle(false); return; }
-      try {
-        const res = await fetch(`/api/gamesession?address=${address}`);
-        const data = await res.json();
-        setMustSettle(Boolean(data?.required));
-      } catch { setMustSettle(false); }
-    };
-    check();
-  }, [address, gameStatus]);
-
-  // Hide add-mini-app prompt if payment is required so it doesn't block clicks
-  useEffect(() => {
-    if (mustSettle) setShowAddPrompt(false);
-  }, [mustSettle]);
 
   // Read challenge params from URL to prefill
   useEffect(() => {
@@ -325,7 +310,6 @@ export default function Home() {
   const scoreboardAuthenticated = !!address; // Use regular auth
 
   const handleCellClick = async (index: number) => {
-    if (mustSettle) return;
     if (gameStatus !== 'playing') return;
 
     // If selecting a block target before ending turn
@@ -346,7 +330,6 @@ export default function Home() {
     if (!sessionId && address) {
       try {
         const res = await fetch('/api/gamesession', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address }) });
-        if (res.status === 409) { setMustSettle(true); return; }
         const data = await res.json();
         if (data?.id) setSessionId(data.id as string);
       } catch {}
@@ -454,7 +437,6 @@ export default function Home() {
 
   useEffect(() => {
     if (!isPlayerTurn && gameStatus === 'playing') {
-      if (mustSettle) return;
       const timer = setTimeout(async () => {
         const aiMove = getAIMove(board);
         if (aiMove !== -1) {
@@ -488,7 +470,7 @@ export default function Home() {
 
       return () => clearTimeout(timer);
     }
-  }, [board, isPlayerTurn, playerSymbol, getAIMove, gameStatus, checkWinner, getAvailableMoves, mustSettle, sessionId, blockedCellIndex]);
+  }, [board, isPlayerTurn, playerSymbol, getAIMove, gameStatus, checkWinner, getAvailableMoves, sessionId, blockedCellIndex]);
 
   // Outcome sounds and onchain recording
   useEffect(() => {
@@ -649,65 +631,43 @@ export default function Home() {
 
   // daily seed fetch removed (unused)
 
-  // Payout/charge handling on game end
+  // Points system handling on game end (both onchain and database)
   useEffect(() => {
-    const handleWinPayout = async (playerAddress: string) => {
+    const handleGameResult = async (playerAddress: string, result: 'win' | 'loss' | 'draw') => {
       try {
-        const r = await fetch('/api/payout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: playerAddress, sessionId }),
-        });
-        if (r.ok) { try { showToast('Winner payout sent'); } catch {} } else {
-          try { const j = await r.json(); showToast(j?.error || 'Payout failed'); } catch { showToast('Payout failed'); }
+        // Record onchain first
+        if (address && !isRecording) {
+          recordOnchain(result);
         }
-      } catch {}
-    };
 
-    const handleLossCharge = async (playerAddress: string) => {
-      try {
-        const res = await fetch('/api/charge', {
+        // Also record in database for leaderboard
+        const res = await fetch('/api/leaderboard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: playerAddress, sessionId }),
+          body: JSON.stringify({ 
+            address: playerAddress, 
+            result,
+            alias: farcasterUsername || undefined,
+            pfpUrl: farcasterPfpUrl || undefined
+          }),
         });
-        const data = await res.json();
-        if (data?.to && data?.value) {
-          await sendTransactionAsync({ to: data.to as `0x${string}`, value: BigInt(data.value) });
-          try { showToast('Loss settlement sent'); } catch {}
-          try { await fetch('/api/settlement', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: playerAddress, required: false }) }); } catch {}
-          if (sessionId) {
-            try { await fetch('/api/gamesession', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: sessionId, settled: true, tx_hash: (data.hash ?? undefined) }) }); } catch {}
-          }
-          // Auto-start a new round after successful settlement
-          startNewGameRound();
+        
+        if (res.ok) {
+          const points = result === 'win' ? 2 : result === 'loss' ? 2 : 1;
+          try { showToast(`+${points} points! (Recorded onchain)`); } catch {}
         } else {
-          try { await fetch('/api/settlement', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: playerAddress, required: true }) }); } catch {}
-          setMustSettle(true);
-          try { showToast('Payment required to continue'); } catch {}
-          if (sessionId) {
-            try { await fetch('/api/gamesession', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: sessionId, requires_settlement: true }) }); } catch {}
-          }
+          try { showToast('Failed to record result in database'); } catch {}
         }
       } catch {
-        try { await fetch('/api/settlement', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: playerAddress, required: true }) }); } catch {}
-        setMustSettle(true);
-        try { showToast('Transaction failed'); } catch {}
-        if (sessionId) {
-          try { await fetch('/api/gamesession', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: sessionId, requires_settlement: true }) }); } catch {}
-        }
+        try { showToast('Failed to record result'); } catch {}
       }
     };
 
-    if ((gameStatus === 'won' || gameStatus === 'lost') && !outcomeHandled && address) {
+    if ((gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw') && !outcomeHandled && address) {
       setOutcomeHandled(true);
-      if (gameStatus === 'won') {
-        handleWinPayout(address);
-      } else if (gameStatus === 'lost') {
-        handleLossCharge(address);
-      }
+      handleGameResult(address, gameStatus as 'win' | 'loss' | 'draw');
     }
-  }, [gameStatus, address, outcomeHandled, sendTransactionAsync, sessionId, startNewGameRound, showToast]);
+  }, [gameStatus, address, outcomeHandled, farcasterUsername, farcasterPfpUrl, showToast, recordOnchain, isRecording]);
 
   // handleReset no longer used after series removal
 
@@ -913,49 +873,6 @@ export default function Home() {
         
       {/* Play page content */}
       <div className="w-full flex flex-col items-center" style={{ minHeight: `calc(100vh - ${bottomNavHeight}px - 80px)` }}>
-        {mustSettle && (
-          <div className="mb-3 w-full max-w-md p-3 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm">
-            Payment required to continue. Please complete the previous loss transaction.
-            <div className="mt-2 flex justify-center">
-              <button
-                className={`px-4 py-2 rounded bg-red-600 text-white ${settlingLoss ? 'opacity-60 cursor-wait' : ''}`}
-                disabled={settlingLoss}
-                onClick={async () => {
-                  if (!address) { try { showToast('Connect your wallet first'); } catch {} return; }
-                  setSettlingLoss(true);
-                  try {
-                    const res = await fetch(`/api/settlement/outstanding?address=${address}`);
-                    const out = await res.json();
-                    if (!out?.to || !out?.totalWei || !Array.isArray(out?.sessionIds) || out.sessionIds.length === 0) {
-                      try { showToast('Nothing to settle'); } catch {}
-                      setMustSettle(false);
-                      setSettlingLoss(false);
-                      return;
-                    }
-                    // Prefer a single native transfer; fall back to batch if needed later
-                    const txHash = await sendTransactionAsync({ to: out.to as `0x${string}`, value: BigInt(out.totalWei as string) });
-                    try { showToast('All losses settled'); } catch {}
-                    try {
-                      await fetch('/api/settlement/complete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ address, sessionIds: out.sessionIds as string[], txHash })
-                      });
-                    } catch {}
-                    setMustSettle(false);
-                    if (sessionId) { try { await fetch('/api/gamesession', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: sessionId, settled: true, tx_hash: txHash as string }) }); } catch {} }
-                  } catch {
-                    try { showToast('Transaction failed'); } catch {}
-                  } finally {
-                    setSettlingLoss(false);
-                  }
-                }}
-              >
-                {settlingLoss ? 'Processing…' : 'Complete previous transaction'}
-              </button>
-            </div>
-          </div>
-        )}
       {playerSymbol && (
         <>
           <div className="mb-3 flex items-center justify-center gap-3 flex-wrap" style={{ color: '#000000' }}>
