@@ -20,7 +20,10 @@ function calcLevel(xp: number): number {
 }
 
 async function readProgress(address: string): Promise<Progress> {
-  if (!redis) return { xp: 0, level: 1, streak: 0, lastPlayed: null, winStreak: 0, achievements: [] };
+  if (!redis) {
+    // Fallback: return basic progress without persistence
+    return { xp: 0, level: 1, streak: 0, lastPlayed: null, winStreak: 0, achievements: [] };
+  }
   const key = `progress:${address.toLowerCase()}`;
   const data = await redis.get<Progress>(key);
   if (!data) return { xp: 0, level: 1, streak: 0, lastPlayed: null, winStreak: 0, achievements: [] };
