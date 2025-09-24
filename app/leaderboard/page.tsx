@@ -93,7 +93,7 @@ function LeaderboardTab() {
         >
           ALL TIME
         </button>
-        <button 
+        {/* <button 
           className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
             activeTab === 'onchain' 
               ? 'text-black border-black' 
@@ -102,7 +102,7 @@ function LeaderboardTab() {
           onClick={() => setActiveTab('onchain')}
         >
           ONCHAIN
-        </button>
+        </button> */}
       </div>
 
       {activeTab === 'onchain' ? (

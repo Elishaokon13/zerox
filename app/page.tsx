@@ -13,7 +13,7 @@ import { playMove, playAIMove, playWin, playLoss, playDraw, resumeAudio, playWar
 import { hapticTap, hapticWin, hapticLoss } from '@/lib/haptics';
 import { useAccount, useSendTransaction, useSendCalls } from 'wagmi';
 import { encodeFunctionData } from 'viem';
-import { useMiniKit, useIsInMiniApp, useViewProfile } from '@coinbase/onchainkit/minikit';
+import { useMiniKit, useIsInMiniApp, useViewProfile, useComposeCast } from '@coinbase/onchainkit/minikit';
 import { useScoreboard } from '@/lib/useScoreboard';
 
 
@@ -83,6 +83,7 @@ export default function Home() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
   const { isInMiniApp } = useIsInMiniApp();
   const viewProfile = useViewProfile();
+  const { composeCast } = useComposeCast();
   const { recordResult: recordOnchain, isRecording, score: onchainScore } = useScoreboard();
   // Removed useUnifiedAuth - not implemented
   // Simple toast
@@ -204,6 +205,26 @@ export default function Home() {
     }
   }, [getReferralLink, showToast, address]);
 
+  // Share referral via cast
+  const shareReferralCast = useCallback(async () => {
+    const link = getReferralLink();
+    if (!link) {
+      showToast('No referral link available - address not found');
+      return;
+    }
+    
+    try {
+      await composeCast({
+        text: `🎮 Join me in ZeroX TicTacToe! Play games, earn points, and compete for weekly ETH rewards! 🏆\n\nPlay now: ${link}`,
+        embeds: [window.location.origin]
+      });
+      showToast('Cast composed! Share your referral with the community! 🚀');
+    } catch (error) {
+      console.error('Failed to compose cast:', error);
+      showToast('Failed to compose cast');
+    }
+  }, [getReferralLink, showToast, composeCast]);
+
   // Load referral stats when address changes
   useEffect(() => {
     loadReferralStats();
@@ -310,6 +331,13 @@ export default function Home() {
     }
   }, [address, isRecording, recordOnchain]);
   const score = onchainScore || { wins: 0, draws: 0, losses: 0 };
+  
+  // Debug logging for onchain scores
+  useEffect(() => {
+    if (address && onchainScore) {
+      console.log('Onchain scoreboard data:', onchainScore);
+    }
+  }, [address, onchainScore]);
   const scoreboardAddress = address; // Use regular address
   const scoreboardAuthenticated = !!address; // Use regular auth
 
@@ -1143,6 +1171,12 @@ export default function Home() {
                   className="px-4 py-2 bg-[#70FF5A] text-black rounded-lg text-sm font-medium hover:bg-[#5FE04A]"
                 >
                   Copy
+                </button>
+                <button
+                  onClick={shareReferralCast}
+                  className="px-4 py-2 bg-[#1DA1F2] text-white rounded-lg text-sm font-medium hover:bg-[#1A91DA]"
+                >
+                  Share
                 </button>
               </div>
             </div>
