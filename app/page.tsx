@@ -667,11 +667,6 @@ export default function Home() {
   useEffect(() => {
     const handleGameResult = async (playerAddress: string, result: 'win' | 'loss' | 'draw') => {
       try {
-        // Record onchain first
-        if (address && !isRecording) {
-          recordOnchain(result);
-        }
-
         // Also record in database for leaderboard
         const res = await fetch('/api/leaderboard', {
           method: 'POST',
@@ -699,7 +694,7 @@ export default function Home() {
       setOutcomeHandled(true);
       handleGameResult(address, gameStatus as 'win' | 'loss' | 'draw');
     }
-  }, [gameStatus, address, outcomeHandled, farcasterUsername, farcasterPfpUrl, showToast, recordOnchain, isRecording]);
+  }, [gameStatus, address, outcomeHandled, farcasterUsername, farcasterPfpUrl, showToast]);
 
   // handleReset no longer used after series removal
 
