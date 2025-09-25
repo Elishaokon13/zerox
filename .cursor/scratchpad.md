@@ -382,3 +382,76 @@ Updated the leaderboard to make profile pictures clickable and ensure they open 
 3. **FID Priority**: Uses FID when available, falls back to alias if needed
 4. **External Fallback**: Opens Warpcast.com if in-app opening fails
 5. **Visual Feedback**: Hover effects and indicators show the profile is clickable
+
+# User Total Points Display
+
+## Background and Motivation
+A user wants to see their total points earned displayed below the green, white, and black squares that act as the scoreboard. This will provide immediate visibility into the user's overall performance and points accumulation.
+
+## Key Challenges and Analysis
+1. **Current Scoreboard**: The scoreboard shows wins, losses, and draws in green, white, and black squares
+2. **Points System**: Users earn points from games (win: +2, loss: +2, draw: +1) and referrals (+2 per referral)
+3. **Data Source**: Points are stored in `leaderboard_entries` table with seasonal data
+4. **Display Location**: Need to add total points display below the existing scoreboard squares
+
+## High-level Task Breakdown
+
+1. **Create User Points API Endpoint**
+   - Success Criteria: API returns user's total points across all seasons
+   - Implementation: Create `/api/user-points` endpoint that aggregates points from all seasons
+   - Include both game points and referral points in total
+
+2. **Update Scoreboard Component**
+   - Success Criteria: Display total points below the existing score squares
+   - Implementation: Add points display with consistent styling
+   - Show loading state while fetching points
+
+3. **Add Points State Management**
+   - Success Criteria: Points load automatically when user connects wallet
+   - Implementation: Add state for user points and fetch on address change
+   - Handle loading and error states gracefully
+
+4. **Style Points Display**
+   - Success Criteria: Points display matches game's visual theme
+   - Implementation: Use consistent colors and styling with existing UI
+   - Make it visually distinct but integrated
+
+## Project Status Board
+- [x] Create `/api/user-points` endpoint to fetch total user points
+- [x] Update Scoreboard component to display total points below squares
+- [x] Add points state management in main page component
+- [x] Style points display to match game theme
+- [x] Test points display functionality
+
+## Executor's Feedback or Assistance Requests
+
+### Implementation Complete
+Successfully implemented user total points display below the scoreboard squares. The implementation includes:
+
+1. **API Endpoint**: Created `/api/user-points` that aggregates points from all seasons and includes referral points
+2. **Scoreboard Component**: Updated to show total points in a black box below the green/white/black score squares
+3. **State Management**: Added automatic fetching of user points when wallet address changes
+4. **Styling**: Used consistent game theme colors (black background, green text for points)
+5. **Loading States**: Added loading indicator while fetching points
+6. **Error Handling**: Graceful fallback to "Points: 0" if data unavailable
+
+### Key Features
+- **Total Points Display**: Shows user's cumulative points from all games and referrals
+- **Referral Count**: Displays referral count when user has referrals
+- **Real-time Updates**: Points update automatically when user connects wallet
+- **Visual Integration**: Matches existing game UI with black box below score squares
+- **Responsive Design**: Works on mobile and desktop
+
+### Technical Details
+- Points aggregated from `leaderboard_entries` table across all seasons
+- Referral points calculated from `referrals` table (2 points per referral)
+- API returns both game points and referral points separately
+- Component handles loading and error states gracefully
+- No linting errors introduced
+
+## Lessons
+- Points are stored per season in leaderboard_entries table
+- Need to aggregate across all seasons for total points
+- Referral points are calculated separately and should be included
+- Scoreboard component needed restructuring to accommodate points display below squares
+- Black background with green text provides good contrast and matches game theme
