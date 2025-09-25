@@ -157,6 +157,10 @@ export default function Home() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [farcasterUsername, setFarcasterUsername] = useState<string>('');
   const [farcasterPfpUrl, setFarcasterPfpUrl] = useState<string>('');
+  
+  // User points state
+  const [userPoints, setUserPoints] = useState<{ gamePoints: number; referralPoints: number; totalPoints: number; totalReferrals: number } | null>(null);
+  const [pointsLoading, setPointsLoading] = useState(false);
 
   // Load referral stats
   const loadReferralStats = useCallback(async () => {
@@ -229,6 +233,33 @@ export default function Home() {
   useEffect(() => {
     loadReferralStats();
   }, [loadReferralStats]);
+
+  // Load user points when address changes
+  useEffect(() => {
+    const fetchUserPoints = async () => {
+      if (!address) {
+        setUserPoints(null);
+        return;
+      }
+
+      setPointsLoading(true);
+      try {
+        const response = await fetch(`/api/user-points?address=${address}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data);
+        } else {
+          console.error('Failed to fetch user points');
+        }
+      } catch (error) {
+        console.error('Error fetching user points:', error);
+      } finally {
+        setPointsLoading(false);
+      }
+    };
+
+    fetchUserPoints();
+  }, [address]);
 
   // Handle referral links on page load
   useEffect(() => {
@@ -856,10 +887,22 @@ export default function Home() {
         {/* Results summary pill row (top-right) - only show when board is visible */}
         {playerSymbol && (
           <div className="w-full max-w-md mb-2 flex justify-end">
-            <div className="flex items-center gap-2">
-              <div className="px-2 py-1 rounded-md text-[10px] bg-[#70FF5A] text-black font-semibold">W {score?.wins ?? 0}</div>
-              <div className="px-2 py-1 rounded-md text-[10px] bg-white text-black border border-[#e5e7eb] font-semibold">D {score?.draws ?? 0}</div>
-              <div className="px-2 py-1 rounded-md text-[10px] bg-black text-white font-semibold">L {score?.losses ?? 0}</div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <div className="px-2 py-1 rounded-md text-[10px] bg-[#70FF5A] text-black font-semibold">W {score?.wins ?? 0}</div>
+                <div className="px-2 py-1 rounded-md text-[10px] bg-white text-black border border-[#e5e7eb] font-semibold">D {score?.draws ?? 0}</div>
+                <div className="px-2 py-1 rounded-md text-[10px] bg-black text-white font-semibold">L {score?.losses ?? 0}</div>
+              </div>
+              {/* Points display */}
+              <div className="px-3 py-1 rounded-md text-[10px] bg-black text-white text-center">
+                {pointsLoading ? (
+                  <span style={{ color: '#70FF5A' }}>Loading...</span>
+                ) : userPoints ? (
+                  <span>Points: <span style={{ color: '#70FF5A', fontWeight: 'bold' }}>{userPoints.totalPoints}</span></span>
+                ) : (
+                  <span style={{ color: '#70FF5A' }}>Points: 0</span>
+                )}
+              </div>
             </div>
           </div>
         )}
