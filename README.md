@@ -165,4 +165,17 @@ npm run dev
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### What this means:
+- ✅ **Commercial use** - Use this project in commercial applications
+- ✅ **Modification** - Modify the code to suit your needs
+- ✅ **Distribution** - Share and distribute the software
+- ✅ **Private use** - Use privately without restrictions
+- ✅ **Patent use** - Use any patents included in the code
+
+### Requirements:
+- 📝 **Include license and copyright notice** in all copies
+- 📝 **State changes** if you modify the code
+
+For more information about the MIT License, visit [choosealicense.com](https://choosealicense.com/licenses/mit/).
