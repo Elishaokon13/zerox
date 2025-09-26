@@ -447,7 +447,14 @@ Successfully implemented user total points display below the scoreboard squares.
 - Referral points calculated from `referrals` table (2 points per referral)
 - API returns both game points and referral points separately
 - Component handles loading and error states gracefully
+- **Auto-refresh**: Points update automatically after each game completion
+- **Real-time updates**: Points refresh when referrals are processed
 - No linting errors introduced
+
+### Recent Fix
+- **Issue**: Points display wasn't updating automatically after games
+- **Solution**: Added `fetchUserPoints()` calls after successful game completion and referral processing
+- **Result**: Points now update in real-time without page refresh
 
 ## Lessons
 - Points are stored per season in leaderboard_entries table

@@ -235,31 +235,31 @@ export default function Home() {
   }, [loadReferralStats]);
 
   // Load user points when address changes
-  useEffect(() => {
-    const fetchUserPoints = async () => {
-      if (!address) {
-        setUserPoints(null);
-        return;
-      }
+  const fetchUserPoints = useCallback(async () => {
+    if (!address) {
+      setUserPoints(null);
+      return;
+    }
 
-      setPointsLoading(true);
-      try {
-        const response = await fetch(`/api/user-points?address=${address}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserPoints(data);
-        } else {
-          console.error('Failed to fetch user points');
-        }
-      } catch (error) {
-        console.error('Error fetching user points:', error);
-      } finally {
-        setPointsLoading(false);
+    setPointsLoading(true);
+    try {
+      const response = await fetch(`/api/user-points?address=${address}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserPoints(data);
+      } else {
+        console.error('Failed to fetch user points');
       }
-    };
-
-    fetchUserPoints();
+    } catch (error) {
+      console.error('Error fetching user points:', error);
+    } finally {
+      setPointsLoading(false);
+    }
   }, [address]);
+
+  useEffect(() => {
+    fetchUserPoints();
+  }, [fetchUserPoints]);
 
   // Handle referral links on page load
   useEffect(() => {
@@ -280,6 +280,7 @@ export default function Home() {
         if (response.ok) {
           showToast('Welcome! You were referred by a friend!');
           loadReferralStats(); // Refresh stats
+          fetchUserPoints(); // Refresh points display
         }
       }).catch(error => {
         console.error('Referral processing failed:', error);
@@ -290,7 +291,7 @@ export default function Home() {
       newUrl.searchParams.delete('ref');
       window.history.replaceState({}, '', newUrl.toString());
     }
-  }, [address, loadReferralStats, showToast]);
+  }, [address, loadReferralStats, showToast, fetchUserPoints]);
 
 
   // Read challenge params from URL to prefill
@@ -579,6 +580,8 @@ export default function Home() {
             if (r.ok) {
               const pointsText = result === 'win' ? '+2 points' : result === 'loss' ? '+2 points' : '+1 point';
               showToast(pointsText);
+              // Refresh user points after successful update
+              fetchUserPoints();
             }
           }).catch(() => {});
         }
@@ -586,7 +589,7 @@ export default function Home() {
         console.error('Failed to record result:', error);
       }
     }
-  }, [gameStatus, resultRecorded, address, recordResult, context, showToast, scoreboardAddress, scoreboardAuthenticated]);
+  }, [gameStatus, resultRecorded, address, recordResult, context, showToast, scoreboardAddress, scoreboardAuthenticated, fetchUserPoints]);
 
   // Game status effects (sounds, haptics, auto-restart)
   useEffect(() => {
