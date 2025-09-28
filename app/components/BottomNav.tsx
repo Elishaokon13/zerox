@@ -38,6 +38,14 @@ export function BottomNav() {
             </div>
           </Link>
 
+          <Link href="/referrals" className={`flex-1 py-2 text-center text-xs sm:text-sm font-semibold rounded-t-lg ${currentTab === 'referrals' ? 'text-[#066c00] bg-[#b6f569]/30' : 'text-[#70FF5A]/70'}`}>
+            <div className="flex flex-col items-center gap-0.5 relative">
+              {currentTab === 'referrals' && <span className="absolute -top-2 h-1 w-8 rounded-full bg-[#70FF5A]" />}
+              <span aria-hidden>🔗</span>
+              <span>Referrals</span>
+            </div>
+          </Link>
+
           {/* PARTY MODE BUTTON - COMMENTED OUT FOR NOW */}
           {/* TODO: Re-enable when party mode is properly implemented */}
           {/*
