@@ -38,13 +38,16 @@ function LeaderboardTab() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setCurrentPage(1);
+      setHasMore(true);
       try {
         const endpoint = activeTab === 'weekly' ? '/api/leaderboard' : '/api/leaderboard/alltime';
-        const res = await fetch(endpoint);
+        const res = await fetch(`${endpoint}?page=1&limit=20`);
         const data = await res.json();
         setSeason(activeTab === 'weekly' ? (data?.season ?? null) : null);
         const rowsFromApi = (Array.isArray(data?.top) ? data.top : []) as Array<TopRow>;
         setRows(rowsFromApi);
+        setHasMore(data?.pagination?.hasMore ?? false);
       } catch {
         setError('Failed to load leaderboard');
       } finally {
@@ -53,6 +56,26 @@ function LeaderboardTab() {
     };
     load();
   }, [activeTab]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    
+    setLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const endpoint = activeTab === 'weekly' ? '/api/leaderboard' : '/api/leaderboard/alltime';
+      const res = await fetch(`${endpoint}?page=${nextPage}&limit=20`);
+      const data = await res.json();
+      const newRows = (Array.isArray(data?.top) ? data.top : []) as Array<TopRow>;
+      setRows(prev => [...prev, ...newRows]);
+      setCurrentPage(nextPage);
+      setHasMore(data?.pagination?.hasMore ?? false);
+    } catch {
+      setError('Failed to load more entries');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!season?.end) return;
