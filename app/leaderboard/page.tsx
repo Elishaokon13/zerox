@@ -100,17 +100,17 @@ function LeaderboardTab() {
     return () => clearInterval(id);
   }, [season]);
 
-  // Infinite scroll detection
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
-        loadMore();
-      }
-    };
+  // Infinite scroll detection - temporarily disabled for debugging
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
+  //       loadMore();
+  //     }
+  //   };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadMore]);
+  //   window.addEventListener('scroll', handleScroll);
+  //   return () => window.removeEventListener('scroll', handleScroll);
+  // }, [loadMore]);
 
   return (
     <div className="w-full max-w-md mx-auto px-4">
