@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       if (!item.expires_at) return true; // No expiration
       return new Date(item.expires_at) > now;
     }).map(item => {
-      const lootboxItem = item.lootbox_items;
+      const lootboxItem = item.lootbox_items?.[0];
       return {
         inventory_id: item.id,
         quantity: item.quantity,
