@@ -64,7 +64,6 @@ export function useScoreboard() {
     abi: SCOREBOARD_ABI,
     functionName: 'getScore',
     args: address ? [address] : undefined,
-    enabled: !!address && !!SCOREBOARD_ADDRESS,
   });
 
   // Debug logging
