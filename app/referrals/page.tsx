@@ -23,7 +23,7 @@ export default function ReferralsPage() {
   const bottomInset = (context?.client?.safeAreaInsets?.bottom ?? 0);
   // const bottomNavHeight = 64 + bottomInset; // Not used in this component
 
-  const fetchReferralStats = async () => {
+  const fetchReferralStats = useCallback(async () => {
     if (!address) return;
 
     setLoading(true);
@@ -40,7 +40,7 @@ export default function ReferralsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [address]);
 
   useEffect(() => {
     fetchReferralStats();
