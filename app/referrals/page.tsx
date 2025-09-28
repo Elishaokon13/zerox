@@ -19,9 +19,9 @@ export default function ReferralsPage() {
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Account for bottom nav height + safe area
-  const bottomInset = (context?.client?.safeAreaInsets?.bottom ?? 0);
-  // const bottomNavHeight = 64 + bottomInset; // Not used in this component
+  // Account for bottom nav height + safe area (not used in this component)
+  // const bottomInset = (context?.client?.safeAreaInsets?.bottom ?? 0);
+  // const bottomNavHeight = 64 + bottomInset;
 
   const fetchReferralStats = useCallback(async () => {
     if (!address) return;
