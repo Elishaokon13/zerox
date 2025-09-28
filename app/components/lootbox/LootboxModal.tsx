@@ -61,7 +61,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
   }, [address]);
 
   const openLootbox = useCallback(async () => {
-    if (!address || !dailyStatus.can_open || hasOpenedRef.current) return;
+    if (!address || hasOpenedRef.current) return;
 
     hasOpenedRef.current = true;
     setIsOpening(true);
@@ -93,14 +93,18 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
       } else {
         const error = await response.json();
         showToast(error.error || 'Failed to open lootbox');
+        // Reset the ref on error so user can try again
+        hasOpenedRef.current = false;
       }
     } catch (error) {
       console.error('Failed to open lootbox:', error);
       showToast('Failed to open lootbox');
+      // Reset the ref on error so user can try again
+      hasOpenedRef.current = false;
     } finally {
       setIsOpening(false);
     }
-  }, [address, dailyStatus.can_open, onItemReceived, showToast]);
+  }, [address, onItemReceived, showToast]);
 
   // Track window size for confetti
   useEffect(() => {
