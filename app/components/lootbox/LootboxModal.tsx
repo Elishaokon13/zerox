@@ -46,12 +46,34 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
+  // Track window size for confetti
+  useEffect(() => {
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
+
   // Load daily lootbox status
   useEffect(() => {
     if (isOpen && address) {
       fetchLootboxStatus();
     }
   }, [isOpen, address]);
+
+  // Auto-open lootbox if it's an auto popup
+  useEffect(() => {
+    if (isOpen && isAutoPopup && address && dailyStatus.can_open) {
+      // Small delay to show the modal first
+      const timer = setTimeout(() => {
+        openLootbox();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isAutoPopup, address, dailyStatus.can_open]);
 
   const fetchLootboxStatus = async () => {
     try {
