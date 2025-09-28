@@ -63,7 +63,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
     if (isOpen && address) {
       fetchLootboxStatus();
     }
-  }, [isOpen, address]);
+  }, [isOpen, address, fetchLootboxStatus]);
 
   // Auto-open lootbox if it's an auto popup
   useEffect(() => {
