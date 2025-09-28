@@ -42,18 +42,13 @@ function LeaderboardTab() {
       setHasMore(true);
       try {
         const endpoint = activeTab === 'weekly' ? '/api/leaderboard' : '/api/leaderboard/alltime';
-        console.log('Fetching leaderboard from:', `${endpoint}?page=1&limit=20`);
         const res = await fetch(`${endpoint}?page=1&limit=20`);
-        console.log('Response status:', res.status);
         const data = await res.json();
-        console.log('Response data:', data);
         setSeason(activeTab === 'weekly' ? (data?.season ?? null) : null);
         const rowsFromApi = (Array.isArray(data?.top) ? data.top : []) as Array<TopRow>;
-        console.log('Rows from API:', rowsFromApi.length);
         setRows(rowsFromApi);
         setHasMore(data?.pagination?.hasMore ?? false);
-      } catch (error) {
-        console.error('Failed to load leaderboard:', error);
+      } catch {
         setError('Failed to load leaderboard');
       } finally {
         setLoading(false);
