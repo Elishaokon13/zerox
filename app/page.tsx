@@ -1011,7 +1011,7 @@ export default function Home() {
             <div className="w-full text-center text-sm opacity-80">
               {configText}
             </div>
-            <div className="w-full flex justify-center gap-2 flex-wrap">
+            <div className="w-full flex justify-center gap-1 sm:gap-2 flex-wrap px-2">
               {/* Settings button - commented out for now */}
               {/*
               <button
@@ -1022,13 +1022,13 @@ export default function Home() {
               </button>
               */}
               <button
-                className="px-4 py-1.5 rounded-full text-sm border bg-gradient-to-r from-yellow-400 to-orange-500 text-black border-yellow-400 font-bold"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-gradient-to-r from-yellow-400 to-orange-500 text-black border-yellow-400 font-bold flex-1 sm:flex-none min-w-0"
                 onClick={() => setShowLootboxModal(true)}
               >
                 🎁 Lootbox
               </button>
               <button
-                className="px-4 py-1.5 rounded-full text-sm border bg-purple-500 text-white border-purple-500"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-purple-500 text-white border-purple-500 flex-1 sm:flex-none min-w-0"
                 onClick={() => setShowInventoryPanel(true)}
               >
                 ⚡ Power-ups
