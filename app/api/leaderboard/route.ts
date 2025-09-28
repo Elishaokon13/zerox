@@ -20,9 +20,14 @@ function seasonEndISO(): string {
   return end.toISOString().slice(0, 10);
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const season = seasonStartISO();
-  if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '20');
+  const offset = (page - 1) * limit;
+  
+  if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
   
   // Try without the user_notifications join first
   const { data, error } = await supabase
@@ -40,7 +45,7 @@ export async function GET() {
     .order('points', { ascending: false })
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
-    .limit(10);
+    .range(offset, offset + limit - 1);
   
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
   const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
