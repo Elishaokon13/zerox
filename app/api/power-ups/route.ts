@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Consume one quantity of the item
-    const { error: consumeError } = await supabase
+    const { error: consumeError } = await supabaseAdmin
       .from('user_inventory')
       .update({ quantity: inventoryItem.quantity - 1 })
       .eq('id', inventory_id)
