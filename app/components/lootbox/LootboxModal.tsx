@@ -38,11 +38,13 @@ const RARITY_GLOW = {
   legendary: 'shadow-orange-500/50'
 };
 
-export function LootboxModal({ isOpen, onClose, onItemReceived, showToast }: LootboxModalProps) {
+export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAutoPopup = false, onAutoClose }: LootboxModalProps) {
   const { address } = useAccount();
   const [isOpening, setIsOpening] = useState(false);
   const [receivedItem, setReceivedItem] = useState<LootboxItem | null>(null);
   const [dailyStatus, setDailyStatus] = useState({ earned: 0, limit: 3, remaining: 3, can_open: true });
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   // Load daily lootbox status
   useEffect(() => {
