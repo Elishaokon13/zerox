@@ -167,7 +167,14 @@ export default function Home() {
   // Lootbox state
   const [showLootboxModal, setShowLootboxModal] = useState(false);
   const [showInventoryPanel, setShowInventoryPanel] = useState(false);
-  const [activePowerUps, setActivePowerUps] = useState<{[key: string]: any}>({});
+  const [activePowerUps, setActivePowerUps] = useState<{
+    doublePoints?: boolean;
+    tryAgain?: boolean;
+    aiHelp?: boolean;
+    undoStep?: boolean;
+    extraLife?: boolean;
+    streakRecovery?: boolean;
+  }>({});
 
   // Load referral stats
   const loadReferralStats = useCallback(async () => {
