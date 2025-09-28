@@ -272,7 +272,15 @@ export default function Home() {
   }, [address]);
 
   // Handle power-up usage
-  const handlePowerUpUsage = useCallback(async (item: any) => {
+  const handlePowerUpUsage = useCallback(async (item: {
+    inventory_id: number;
+    item_type: string;
+    item_name: string;
+    description: string;
+    rarity: string;
+    points_value: number;
+    usage_type: string;
+  }) => {
     if (!address) return;
 
     try {
