@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi';
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
 import { WalletCheck } from '../components/WalletCheck';
 import BottomNav from '../components/BottomNav';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface ReferralStats {
   totalReferrals: number;
