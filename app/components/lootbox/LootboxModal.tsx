@@ -122,14 +122,14 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
 
   // Auto-open lootbox if it's an auto popup
   useEffect(() => {
-    if (isOpen && isAutoPopup && address && dailyStatus.can_open) {
+    if (isOpen && isAutoPopup && address && dailyStatus.can_open && !hasOpenedRef.current) {
       // Small delay to show the modal first
       const timer = setTimeout(() => {
         openLootbox();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, isAutoPopup, address, dailyStatus.can_open, openLootbox]);
+  }, [isOpen, isAutoPopup, address, dailyStatus.can_open]);
 
   if (!isOpen) return null;
 
