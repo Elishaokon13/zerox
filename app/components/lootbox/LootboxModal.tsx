@@ -166,7 +166,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className="bg-white rounded-2xl p-6 max-w-md w-full text-center relative overflow-hidden"
+          className="bg-white rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-2 text-center relative overflow-hidden"
         >
           {/* Header */}
           <div className="mb-6">
