@@ -150,6 +150,35 @@ function LeaderboardTab() {
         >
           ALL TIME
         </button>
+      </div>
+      
+      {/* Test button */}
+      <div className="mb-4 text-center">
+        <button 
+          onClick={() => {
+            console.log('Manual load triggered');
+            setLoading(true);
+            setCurrentPage(1);
+            setHasMore(true);
+            fetch('/api/leaderboard?page=1&limit=5')
+              .then(res => res.json())
+              .then(data => {
+                console.log('Manual fetch result:', data);
+                setRows(data.top || []);
+                setHasMore(data.pagination?.hasMore ?? false);
+                setLoading(false);
+              })
+              .catch(err => {
+                console.error('Manual fetch error:', err);
+                setError('Failed to load');
+                setLoading(false);
+              });
+          }}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Test Load
+        </button>
+      </div>
         {/* <button 
           className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
             activeTab === 'onchain' 
