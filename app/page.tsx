@@ -17,6 +17,7 @@ import { useMiniKit, useIsInMiniApp, useViewProfile, useComposeCast } from '@coi
 import { useScoreboard } from '@/lib/useScoreboard';
 import { LootboxModal } from './components/lootbox/LootboxModal';
 import { InventoryPanel } from './components/lootbox/InventoryPanel';
+import { useAutoLootbox } from '@/lib/useAutoLootbox';
 
 
 
