@@ -15,6 +15,8 @@ import { useAccount, useSendTransaction, useSendCalls } from 'wagmi';
 import { encodeFunctionData } from 'viem';
 import { useMiniKit, useIsInMiniApp, useViewProfile, useComposeCast } from '@coinbase/onchainkit/minikit';
 import { useScoreboard } from '@/lib/useScoreboard';
+import { LootboxModal } from './components/lootbox/LootboxModal';
+import { InventoryPanel } from './components/lootbox/InventoryPanel';
 
 
 
