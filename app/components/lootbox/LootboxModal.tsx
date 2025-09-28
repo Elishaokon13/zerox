@@ -117,6 +117,8 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
   useEffect(() => {
     if (isOpen && address) {
       fetchLootboxStatus();
+      // Reset the opened ref when modal opens
+      hasOpenedRef.current = false;
     }
   }, [isOpen, address, fetchLootboxStatus]);
 
