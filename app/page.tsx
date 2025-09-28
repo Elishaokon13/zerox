@@ -1317,18 +1317,19 @@ export default function Home() {
       </div>
     )}
     
-    {/* Lootbox Modal */}
-    <LootboxModal
-      isOpen={showLootboxModal}
-      onClose={() => setShowLootboxModal(false)}
-      onItemReceived={(item) => {
-        showToast(`You received: ${item.name}!`);
-        // Refresh inventory if it's open
-        if (showInventoryPanel) {
-          // Trigger inventory refresh
-        }
-      }}
-    />
+        {/* Lootbox Modal */}
+        <LootboxModal
+          isOpen={showLootboxModal}
+          onClose={() => setShowLootboxModal(false)}
+          onItemReceived={(item) => {
+            showToast(`You received: ${item.name}!`);
+            // Refresh inventory if it's open
+            if (showInventoryPanel) {
+              // Trigger inventory refresh
+            }
+          }}
+          showToast={showToast}
+        />
     
     {/* Inventory Panel */}
     <InventoryPanel
