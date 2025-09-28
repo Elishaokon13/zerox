@@ -15,7 +15,7 @@ interface ReferralStats {
 
 export default function ReferralsPage() {
   const { address } = useAccount();
-  const { context } = useMiniKit();
+  // const { context } = useMiniKit(); // Not used in this component
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(false);
 
