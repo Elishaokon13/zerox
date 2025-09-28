@@ -462,3 +462,135 @@ Successfully implemented user total points display below the scoreboard squares.
 - Referral points are calculated separately and should be included
 - Scoreboard component needed restructuring to accommodate points display below squares
 - Black background with green text provides good contrast and matches game theme
+
+# Lootbox Marketing Campaign Feature
+
+## Background and Motivation
+A user suggested implementing a lootbox system as part of a marketing campaign this week. The lootbox would contain various power-ups and rewards that can be earned and used during gameplay to enhance the user experience and increase engagement.
+
+## Key Challenges and Analysis
+
+### 1. Lootbox Rewards Analysis
+- **Try Again**: Allow user to retry a move (gameplay enhancement)
+- **10 Points**: Direct points reward (immediate value)
+- **Undo Step**: Reverse last move (strategic advantage)
+- **Extra Life**: Continue after loss (engagement retention)
+- **Power Up (Streak Recovery)**: Restore lost streak (motivation boost)
+- **2X Power Up**: Double points multiplier (pre-game enhancement)
+- **Help (Auto Play)**: AI suggests/plays next move (assistance feature)
+
+### 2. Technical Implementation Challenges
+- **State Management**: Track lootbox items per user
+- **Game Integration**: Apply power-ups during gameplay
+- **UI/UX**: Lootbox opening animation and inventory display
+- **Database Schema**: Store user inventory and usage history
+- **Game Logic**: Modify existing game flow to support power-ups
+- **Marketing Integration**: Campaign-specific distribution logic
+
+### 3. Business Considerations
+- **Engagement**: Increase user retention and session length
+- **Monetization**: Potential future premium lootbox purchases
+- **Balance**: Ensure power-ups don't break game fairness
+- **Campaign Timing**: Limited-time marketing feature
+
+## High-level Task Breakdown
+
+### Phase 1: Core Lootbox System
+1. **Database Schema Design**
+   - Success Criteria: Tables for user inventory, lootbox items, and usage tracking
+   - Implementation: Create `user_inventory`, `lootbox_items`, `power_up_usage` tables
+   - Include item types, quantities, expiration dates, and usage limits
+
+2. **Lootbox API Endpoints**
+   - Success Criteria: APIs for opening lootboxes, managing inventory, and applying power-ups
+   - Implementation: Create `/api/lootbox`, `/api/inventory`, `/api/power-ups` endpoints
+   - Handle item distribution, validation, and consumption
+
+3. **Lootbox UI Components**
+   - Success Criteria: Animated lootbox opening, inventory display, and power-up selection
+   - Implementation: Create `LootboxModal`, `InventoryPanel`, `PowerUpSelector` components
+   - Include smooth animations and engaging visual effects
+
+### Phase 2: Power-up Integration
+4. **Game Logic Modifications**
+   - Success Criteria: Existing game flow supports all power-up types
+   - Implementation: Modify game state management to handle power-ups
+   - Add undo functionality, extra life system, and AI assistance
+
+5. **Points System Integration**
+   - Success Criteria: 2X multiplier and direct points work with existing system
+   - Implementation: Extend points calculation to include multipliers
+   - Ensure streak recovery integrates with existing streak tracking
+
+6. **Power-up Application System**
+   - Success Criteria: Users can activate power-ups at appropriate times
+   - Implementation: Add power-up buttons and confirmation dialogs
+   - Handle pre-game, mid-game, and post-game power-up usage
+
+### Phase 3: Marketing Campaign Features
+7. **Campaign Distribution Logic**
+   - Success Criteria: Lootboxes distributed based on campaign rules
+   - Implementation: Create campaign-specific distribution algorithms
+   - Include daily limits, special events, and referral bonuses
+
+8. **Analytics and Tracking**
+   - Success Criteria: Track lootbox usage, user engagement, and campaign effectiveness
+   - Implementation: Add analytics for power-up usage and user behavior
+   - Create admin dashboard for campaign monitoring
+
+9. **Mobile Optimization**
+   - Success Criteria: Lootbox system works seamlessly on mobile devices
+   - Implementation: Optimize animations and touch interactions
+   - Ensure responsive design for all screen sizes
+
+## Project Status Board
+- [ ] Design database schema for lootbox system
+- [ ] Create lootbox API endpoints
+- [ ] Build lootbox UI components with animations
+- [ ] Implement power-up game logic modifications
+- [ ] Integrate points system with multipliers
+- [ ] Add power-up application system
+- [ ] Create campaign distribution logic
+- [ ] Add analytics and tracking
+- [ ] Optimize for mobile devices
+- [ ] Test complete lootbox system
+
+## Key Design Decisions
+
+### 1. Lootbox Distribution Strategy
+- **Daily Free Lootbox**: One free lootbox per day per user
+- **Game Completion Rewards**: Chance to earn lootbox after each game
+- **Referral Bonuses**: Extra lootboxes for successful referrals
+- **Campaign Specials**: Limited-time increased drop rates
+
+### 2. Power-up Balance
+- **Rarity Tiers**: Common (Try Again, Help), Rare (Undo, Extra Life), Epic (Streak Recovery), Legendary (2X Multiplier)
+- **Usage Limits**: Prevent abuse with cooldowns and daily limits
+- **Strategic Value**: Ensure power-ups enhance rather than replace skill
+
+### 3. User Experience
+- **Visual Appeal**: Engaging lootbox opening animations
+- **Clear Value**: Obvious benefits of each power-up
+- **Easy Access**: Simple inventory management and power-up activation
+- **Progress Tracking**: Show lootbox earning progress and usage history
+
+## Executor's Feedback or Assistance Requests
+
+### Questions for Stakeholder
+1. **Campaign Duration**: How long should this lootbox campaign run?
+2. **Distribution Frequency**: How often should users get lootboxes?
+3. **Power-up Rarity**: What should be the drop rates for each item type?
+4. **Monetization**: Should there be premium lootbox purchases?
+5. **Mobile Priority**: Is mobile experience critical for this campaign?
+
+### Technical Considerations
+- **Database Performance**: Inventory queries need to be fast for real-time gameplay
+- **Animation Performance**: Lootbox animations should be smooth on all devices
+- **State Synchronization**: Power-ups need to work in both single-player and party modes
+- **Backward Compatibility**: Ensure existing users aren't disrupted by new features
+
+## Lessons
+- Lootbox systems can significantly increase user engagement when implemented well
+- Power-ups should enhance gameplay without breaking core game balance
+- Marketing campaigns benefit from clear, achievable rewards
+- Mobile-first design is crucial for social gaming features
