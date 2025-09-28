@@ -87,11 +87,11 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast }: Loo
         }));
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to open lootbox');
+        showToast(error.error || 'Failed to open lootbox');
       }
     } catch (error) {
       console.error('Failed to open lootbox:', error);
-      alert('Failed to open lootbox');
+      showToast('Failed to open lootbox');
     } finally {
       setIsOpening(false);
     }
