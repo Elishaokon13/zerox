@@ -225,10 +225,32 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                 {receivedItem.type === 'double_points' && '⚡'}
               </motion.div>
             ) : (
-              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-6xl shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                   onClick={openLootbox}>
-                🎁
-              </div>
+              <motion.div 
+                className="w-40 h-40 mx-auto relative cursor-pointer hover:scale-105 transition-transform"
+                onClick={openLootbox}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl shadow-2xl" 
+                     style={{ 
+                       boxShadow: '0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.3)',
+                       background: 'radial-gradient(circle, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                     }}>
+                </div>
+                <div className="absolute inset-2 bg-black rounded-xl flex items-center justify-center">
+                  <span className="text-4xl font-bold text-red-400">LOOTBOX</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="grid grid-cols-3 gap-1 w-20 h-20">
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">H</div>
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">E</div>
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold"></div>
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">L</div>
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">P</div>
+                    <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">X</div>
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
 
