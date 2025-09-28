@@ -56,7 +56,7 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
     }
   }, [isOpen, address, loadInventory]);
 
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/inventory?address=${address}`);
@@ -71,7 +71,7 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
     } finally {
       setLoading(false);
     }
-  };
+  }, [address]);
 
   const getItemIcon = (itemType: string) => {
     switch (itemType) {
