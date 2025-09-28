@@ -98,14 +98,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to add item to inventory' }, { status: 500 });
     }
 
-    // Record lootbox opening
-    const { error: openingError } = await supabase
-      .from('lootbox_openings')
-      .insert({
-        address: addr,
-        item_id: selectedItem.id,
-        campaign_week: true
-      });
+            // Record lootbox opening
+            const { error: openingError } = await supabaseAdmin
+              .from('lootbox_openings')
+              .insert({
+                address: addr,
+                item_id: selectedItem.id,
+                campaign_week: true
+              });
 
     if (openingError) {
       console.error('Failed to record lootbox opening:', openingError);
