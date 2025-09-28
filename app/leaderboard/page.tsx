@@ -199,6 +199,7 @@ function LeaderboardTab() {
         </div>
       ) : loading ? (
         <div className="space-y-4">
+          <div className="text-center text-sm text-gray-500">Loading leaderboard...</div>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 rounded-2xl bg-[#F3F4F6] animate-pulse" />
           ))}
