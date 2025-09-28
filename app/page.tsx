@@ -161,6 +161,11 @@ export default function Home() {
   // User points state
   const [userPoints, setUserPoints] = useState<{ gamePoints: number; referralPoints: number; totalPoints: number; totalReferrals: number } | null>(null);
   const [pointsLoading, setPointsLoading] = useState(false);
+  
+  // Lootbox state
+  const [showLootboxModal, setShowLootboxModal] = useState(false);
+  const [showInventoryPanel, setShowInventoryPanel] = useState(false);
+  const [activePowerUps, setActivePowerUps] = useState<{[key: string]: any}>({});
 
   // Load referral stats
   const loadReferralStats = useCallback(async () => {
