@@ -60,17 +60,18 @@ export function useScoreboard() {
   const { address } = useAccount();
 
   const { data: score, refetch: refetchScore, error: scoreError } = useContractRead({
-    address: SCOREBOARD_ADDRESS,
+    address: SCOREBOARD_ADDRESS as `0x${string}`,
     abi: SCOREBOARD_ABI,
     functionName: 'getScore',
     args: address ? [address] : undefined,
+    enabled: !!address && !!SCOREBOARD_ADDRESS,
   });
 
   // Debug logging
   useEffect(() => {
     if (scoreError) {
-      console.error('Scoreboard contract error:', scoreError);
-      console.error('Contract address:', SCOREBOARD_ADDRESS);
+      console.warn('Scoreboard contract error:', scoreError);
+      console.warn('Contract address:', SCOREBOARD_ADDRESS);
     }
     if (address) {
       console.log('Fetching score for address:', address);
@@ -92,8 +93,13 @@ export function useScoreboard() {
   }, [isRecording, refetchScore]);
 
   const recordResult = useCallback((result: 'win' | 'loss' | 'draw') => {
+    if (!SCOREBOARD_ADDRESS) {
+      console.warn('No contract address available for recording result');
+      return;
+    }
+    
     recordGame({ 
-      address: SCOREBOARD_ADDRESS,
+      address: SCOREBOARD_ADDRESS as `0x${string}`,
       abi: SCOREBOARD_ABI,
       functionName: 'recordGame',
       args: [result]
