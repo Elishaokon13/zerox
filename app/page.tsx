@@ -1031,6 +1031,18 @@ export default function Home() {
                 ⚡ Power-ups
               </button>
             </div>
+            
+            {/* Try Again button - only show when power-up is active */}
+            {tryAgainActive && !tryAgainUsed && lastMoveIndex !== null && (
+              <div className="w-full flex justify-center mt-2">
+                <button
+                  className="px-6 py-2 rounded-full text-sm font-bold border-2 bg-red-500 text-white border-red-500 hover:bg-red-600 transition-colors animate-pulse"
+                  onClick={handleTryAgain}
+                >
+                  🔄 Try Again - Undo Last Move
+                </button>
+              </div>
+            )}
             {/* Settings modal - commented out for now */}
             {/*
             {showSettings && (
