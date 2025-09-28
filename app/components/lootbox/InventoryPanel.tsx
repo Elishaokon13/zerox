@@ -143,7 +143,7 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
                   key={item.inventory_id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-lg border-2 relative ${
+                  className={`p-3 sm:p-4 rounded-lg border-2 relative ${
                     isExpired(item.expires_at) 
                       ? 'border-gray-300 bg-gray-100 opacity-60' 
                       : 'border-gray-200 bg-white hover:shadow-md'
