@@ -174,6 +174,14 @@ export default function Home() {
     extraLife?: boolean;
     streakRecovery?: boolean;
   }>({});
+  
+  // Auto lootbox system
+  const { 
+    shouldShowAutoLootbox, 
+    isChecking, 
+    markLootboxOpened, 
+    dismissAutoLootbox 
+  } = useAutoLootbox();
 
 
   // Load user points when address changes
@@ -198,6 +206,13 @@ export default function Home() {
       setPointsLoading(false);
     }
   }, [address]);
+
+  // Auto show lootbox when eligible
+  useEffect(() => {
+    if (shouldShowAutoLootbox && !isChecking) {
+      setShowLootboxModal(true);
+    }
+  }, [shouldShowAutoLootbox, isChecking]);
 
   // Handle power-up usage
   const handlePowerUpUsage = useCallback(async (item: {
@@ -974,7 +989,7 @@ export default function Home() {
                 className="px-4 py-1.5 rounded-full text-sm border bg-purple-500 text-white border-purple-500"
                 onClick={() => setShowInventoryPanel(true)}
               >
-                🎒 Inventory
+                ⚡ Power-ups
               </button>
             </div>
             {/* Settings modal - commented out for now */}
@@ -1187,15 +1202,29 @@ export default function Home() {
         {/* Lootbox Modal */}
         <LootboxModal
           isOpen={showLootboxModal}
-          onClose={() => setShowLootboxModal(false)}
+          onClose={() => {
+            setShowLootboxModal(false);
+            if (shouldShowAutoLootbox) {
+              dismissAutoLootbox();
+            }
+          }}
           onItemReceived={(item) => {
             showToast(`You received: ${item.name}!`);
+            // Mark lootbox as opened for auto system
+            if (shouldShowAutoLootbox) {
+              markLootboxOpened();
+            }
             // Refresh inventory if it's open
             if (showInventoryPanel) {
               // Trigger inventory refresh
             }
           }}
           showToast={showToast}
+          isAutoPopup={shouldShowAutoLootbox}
+          onAutoClose={() => {
+            setShowLootboxModal(false);
+            markLootboxOpened();
+          }}
         />
     
     {/* Inventory Panel */}
