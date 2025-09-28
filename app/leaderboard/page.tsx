@@ -116,6 +116,14 @@ function LeaderboardTab() {
     <div className="w-full max-w-md mx-auto px-4">
       <h1 className="text-4xl font-black text-center mb-8 text-black tracking-wider">LEADERBOARD</h1>
       
+      {/* Debug info */}
+      <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+        <div>Loading: {loading ? 'true' : 'false'}</div>
+        <div>Error: {error || 'none'}</div>
+        <div>Rows: {rows.length}</div>
+        <div>Active Tab: {activeTab}</div>
+      </div>
+      
       <div className="flex justify-center gap-8 mb-6">
         <button 
           className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
