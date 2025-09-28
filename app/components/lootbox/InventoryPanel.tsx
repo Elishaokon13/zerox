@@ -160,10 +160,10 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
                   </div>
 
                   {/* Item Icon and Name */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="text-3xl">{getItemIcon(item.item_type)}</div>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="text-2xl sm:text-3xl">{getItemIcon(item.item_type)}</div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-lg" style={{ color: RARITY_COLORS[item.rarity] }}>
+                      <h3 className="font-bold text-base sm:text-lg" style={{ color: RARITY_COLORS[item.rarity] }}>
                         {item.item_name}
                       </h3>
                       <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: RARITY_COLORS[item.rarity] }}>
@@ -173,7 +173,7 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-700 text-sm mb-3">{item.description}</p>
+                  <p className="text-gray-700 text-xs sm:text-sm mb-2 sm:mb-3">{item.description}</p>
 
                   {/* Quantity and Expiration */}
                   <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
