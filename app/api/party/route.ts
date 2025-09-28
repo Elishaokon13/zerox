@@ -1,3 +1,7 @@
+// PARTY API ROUTE - COMMENTED OUT FOR NOW
+// TODO: Re-enable when party mode is properly implemented
+
+/*
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import Pusher from 'pusher';
@@ -192,4 +196,18 @@ export async function GET(req: Request) {
     console.error('Error in GET /api/party:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+*/
+
+// Temporary placeholder API responses
+export async function POST(req: Request) {
+  return NextResponse.json({ error: 'Party mode is under development' }, { status: 503 });
+}
+
+export async function PUT(req: Request) {
+  return NextResponse.json({ error: 'Party mode is under development' }, { status: 503 });
+}
+
+export async function GET(req: Request) {
+  return NextResponse.json({ error: 'Party mode is under development' }, { status: 503 });
 }
