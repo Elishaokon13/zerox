@@ -29,16 +29,6 @@ export async function GET(req?: NextRequest) {
   if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
   
   // Try without the user_notifications join first
-  console.log('Querying leaderboard for season:', season);
-  
-  // First, let's check if there are any entries at all
-  const { data: allEntries, error: allEntriesError } = await supabase
-    .from('leaderboard_entries')
-    .select('season')
-    .limit(5);
-  console.log('All seasons query result:', { allEntries, allEntriesError });
-  console.log('All seasons in database:', allEntries?.map(e => e.season));
-  
   const { data, error } = await supabase
     .from('leaderboard_entries')
     .select(`
@@ -55,8 +45,6 @@ export async function GET(req?: NextRequest) {
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1);
-  
-  console.log('Database query result:', { data, error, count: data?.length });
   
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
   
