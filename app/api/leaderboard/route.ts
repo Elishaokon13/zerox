@@ -20,11 +20,10 @@ function seasonEndISO(): string {
   return end.toISOString().slice(0, 10);
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(req?: NextRequest) {
   const season = seasonStartISO();
-  const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '20');
+  const page = req ? parseInt(new URL(req.url).searchParams.get('page') || '1') : 1;
+  const limit = req ? parseInt(new URL(req.url).searchParams.get('limit') || '20') : 20;
   const offset = (page - 1) * limit;
   
   if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
