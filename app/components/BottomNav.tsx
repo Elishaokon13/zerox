@@ -10,11 +10,13 @@ export function BottomNav() {
   const bottomInset = context?.client?.safeAreaInsets?.bottom ?? 0;
   // PARTY MODE - COMMENTED OUT FOR NOW
   // TODO: Re-enable when party mode is properly implemented
-  const currentTab: 'daily' | 'play' | 'leaderboard' = pathname?.startsWith('/daily')
+  const currentTab: 'daily' | 'play' | 'referrals' | 'leaderboard' = pathname?.startsWith('/daily')
     ? 'daily'
-    : pathname?.startsWith('/leaderboard')
-      ? 'leaderboard'
-      : 'play';
+    : pathname?.startsWith('/referrals')
+      ? 'referrals'
+      : pathname?.startsWith('/leaderboard')
+        ? 'leaderboard'
+        : 'play';
 
   return (
     <div className="fixed left-0 right-0 bottom-0 z-40 bg-black border-t border-[#e5e7eb]" style={{ paddingBottom: bottomInset }}>
