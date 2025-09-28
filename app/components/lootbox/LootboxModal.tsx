@@ -293,10 +293,10 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
             
             {(receivedItem || !dailyStatus.can_open) && (
               <button
-                onClick={onClose}
+                onClick={isAutoPopup ? onAutoClose : onClose}
                 className="px-6 py-3 rounded-lg font-bold bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
               >
-                Close
+                {isAutoPopup ? 'Claim & Continue' : 'Close'}
               </button>
             )}
           </div>
