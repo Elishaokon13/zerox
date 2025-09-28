@@ -957,7 +957,7 @@ export default function Home() {
             <div className="w-full text-center text-sm opacity-80">
               {configText}
             </div>
-            <div className="w-full flex justify-center gap-2">
+            <div className="w-full flex justify-center gap-2 flex-wrap">
               <button
                 className="px-4 py-1.5 rounded-full text-sm border bg-white text-[#000000] border-[#70FF5A]"
                 onClick={() => setShowSettings((v) => !v)}
@@ -969,6 +969,18 @@ export default function Home() {
                 onClick={() => setShowReferralModal(true)}
               >
                 Referrals ({referralStats.totalReferrals})
+              </button>
+              <button
+                className="px-4 py-1.5 rounded-full text-sm border bg-gradient-to-r from-yellow-400 to-orange-500 text-black border-yellow-400 font-bold"
+                onClick={() => setShowLootboxModal(true)}
+              >
+                🎁 Lootbox
+              </button>
+              <button
+                className="px-4 py-1.5 rounded-full text-sm border bg-purple-500 text-white border-purple-500"
+                onClick={() => setShowInventoryPanel(true)}
+              >
+                🎒 Inventory
               </button>
             </div>
             {showSettings && (
