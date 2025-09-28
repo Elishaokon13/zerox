@@ -46,14 +46,20 @@ export default function ReferralsPage() {
     fetchReferralStats();
   }, [address]);
 
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  };
+
   const copyReferralLink = async () => {
     if (referralStats?.referralLink) {
       try {
         await navigator.clipboard.writeText(referralStats.referralLink);
-        // You could add a toast notification here
-        alert('Referral link copied to clipboard!');
+        showToast('Referral link copied to clipboard!');
       } catch (error) {
         console.error('Failed to copy referral link:', error);
+        showToast('Failed to copy referral link');
       }
     }
   };
