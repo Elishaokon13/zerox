@@ -256,12 +256,12 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             {!receivedItem && !isOpening && (
               <button
                 onClick={openLootbox}
                 disabled={!dailyStatus.can_open}
-                className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition-all text-sm sm:text-base ${
                   dailyStatus.can_open
                     ? 'bg-[#70FF5A] text-black hover:bg-[#60E54A] hover:scale-105'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -274,7 +274,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
             {(receivedItem || !dailyStatus.can_open) && (
               <button
                 onClick={isAutoPopup ? onAutoClose : onClose}
-                className="px-6 py-3 rounded-lg font-bold bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
+                className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm sm:text-base"
               >
                 {isAutoPopup ? 'Claim & Continue' : 'Close'}
               </button>
