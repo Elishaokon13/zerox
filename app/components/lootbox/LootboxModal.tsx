@@ -18,6 +18,7 @@ interface LootboxModalProps {
   isOpen: boolean;
   onClose: () => void;
   onItemReceived: (item: LootboxItem) => void;
+  showToast: (message: string) => void;
 }
 
 const RARITY_COLORS = {
