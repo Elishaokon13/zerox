@@ -134,6 +134,6 @@ function checkWinner(squares: Array<string | null>): boolean {
 */
 
 // Temporary placeholder API response
-export async function POST(req: Request) {
+export async function POST() {
   return Response.json({ error: 'Party mode is under development' }, { status: 503 });
 }
