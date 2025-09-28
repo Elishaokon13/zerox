@@ -7,7 +7,7 @@ export async function GET() {
   // Get all-time stats aggregated by address
   const { data, error } = await supabase
     .rpc('get_alltime_leaderboard')
-    .limit(30);
+    .limit(10);
 
   if (error) return NextResponse.json({ top: [] });
 
