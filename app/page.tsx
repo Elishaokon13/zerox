@@ -1028,7 +1028,7 @@ export default function Home() {
                 🎁 Lootbox
               </button>
               <button
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-purple-500 text-white border-purple-500 flex-1 sm:flex-none min-w-0"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg- flex-1 sm:flex-none min-w-0"
                 onClick={() => setShowInventoryPanel(true)}
               >
                 ⚡ Power-ups
