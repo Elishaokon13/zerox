@@ -40,7 +40,7 @@ export async function GET() {
     .order('points', { ascending: false })
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
-    .limit(10);
+    .limit(30);
   
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
   const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
