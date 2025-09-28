@@ -498,7 +498,11 @@ export default function Home() {
     const newBoard = [...board];
     newBoard[index] = playerSymbol;
     setBoard(newBoard);
-    setIsPlayerTurn(false);
+    
+    // Store the move index for potential "Try Again"
+    if (tryAgainActive && !tryAgainUsed) {
+      setLastMoveIndex(index);
+    }
 
     // Player move sound
     playMove();
