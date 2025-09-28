@@ -50,8 +50,7 @@ export async function GET() {
       wins: Number(r.wins), 
       draws: Number(r.draws), 
       losses: Number(r.losses), 
-      points: Number(r.points),
-      fid: r.fid
+      points: Number(r.points)
     }));
 
     return NextResponse.json({ top, season });
