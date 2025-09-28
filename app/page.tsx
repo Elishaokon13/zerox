@@ -1082,7 +1082,7 @@ export default function Home() {
           </div>
           <GameStatus status={gameStatus} isPlayerTurn={isPlayerTurn} secondsLeft={secondsLeft ?? null} />
           {/* Compact level/XP/streak summary above the board */}
-          <div className="m-2 w-full max-w-md px-3 py-2 rounded-lg flex items-center justify-between text-xs" style={{ backgroundColor: '#b6f569', color: '#066c00' }}>
+          <div className="m-2 w-full max-w-md px-3 py-2 rounded-lg flex items-center justify-between text-xs" style={{ backgroundColor: '#70FF5A', color: '#066c00' }}>
             <span>Level {level}</span>
             <span>XP {xp}</span>
             <span>Streak {streak}🔥</span>
