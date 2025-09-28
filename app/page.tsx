@@ -1037,9 +1037,9 @@ export default function Home() {
             
             {/* Try Again button - only show when power-up is active */}
             {tryAgainActive && !tryAgainUsed && lastMoveIndex !== null && (
-              <div className="w-full flex justify-center mt-2">
+              <div className="w-full flex justify-center mt-2 px-2">
                 <button
-                  className="px-6 py-2 rounded-full text-sm font-bold border-2 bg-red-500 text-white border-red-500 hover:bg-red-600 transition-colors animate-pulse"
+                  className="px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-bold border-2 bg-red-500 text-white border-red-500 hover:bg-red-600 transition-colors animate-pulse w-full max-w-xs sm:max-w-none"
                   onClick={handleTryAgain}
                 >
                   🔄 Try Again - Undo Last Move
