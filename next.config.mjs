@@ -15,6 +15,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'tba-mobile.mypinata.cloud' },
       { protocol: 'https', hostname: 'farcaster.xyz' },
       { protocol: 'https', hostname: 'ipfs.decentralized-content.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
   },
 };
