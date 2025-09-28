@@ -1,7 +1,7 @@
 'use client';
 
 import { useAccount } from 'wagmi';
-import { useMiniKit } from '@coinbase/onchainkit/minikit';
+// import { useMiniKit } from '@coinbase/onchainkit/minikit'; // Not used in this component
 import { WalletCheck } from '../components/WalletCheck';
 import BottomNav from '../components/BottomNav';
 import { useState, useEffect, useCallback } from 'react';
