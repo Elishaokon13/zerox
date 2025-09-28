@@ -35,7 +35,7 @@ const RARITY_GLOW = {
   legendary: 'shadow-orange-500/50'
 };
 
-export function LootboxModal({ isOpen, onClose, onItemReceived }: LootboxModalProps) {
+export function LootboxModal({ isOpen, onClose, onItemReceived, showToast }: LootboxModalProps) {
   const { address } = useAccount();
   const [isOpening, setIsOpening] = useState(false);
   const [receivedItem, setReceivedItem] = useState<LootboxItem | null>(null);
