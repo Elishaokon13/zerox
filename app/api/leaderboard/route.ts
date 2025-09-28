@@ -47,9 +47,10 @@ export async function GET(req: NextRequest) {
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1);
   
-  if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
+  if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
+  
   const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
-    rank: i + 1, 
+    rank: offset + i + 1, 
     address: r.address, 
     alias: r.alias ?? undefined, 
     pfpUrl: r.pfp_url ?? undefined, 
@@ -59,6 +60,9 @@ export async function GET(req: NextRequest) {
     points: r.points,
     fid: undefined // FID will be undefined for now since we removed the join
   }));
+  
+  // Check if there are more entries
+  const hasMore = data && data.length === limit;
   // Totals: sum payouts, charges, and total unique users this season
   let totalPayoutEth = 0;
   let totalChargeEth = 0;
