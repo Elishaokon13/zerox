@@ -99,7 +99,7 @@ export default function ReferralsPage() {
                       <div className="text-sm text-[#9CA3AF] font-semibold">Total Referrals</div>
                     </div>
                     <div className="p-4 bg-white rounded-2xl border border-[#F3F4F6] text-center">
-                      <div className="text-2xl font-black text-black">{referralStats.totalEarnings}</div>
+                      <div className="text-2xl font-black text-black">{referralStats.totalPoints}</div>
                       <div className="text-sm text-[#9CA3AF] font-semibold">Points Earned</div>
                     </div>
                   </div>
