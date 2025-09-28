@@ -99,7 +99,7 @@ export async function DELETE(req: NextRequest) {
 
     if (newQuantity <= 0) {
       // Delete the item completely
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await supabaseAdmin
         .from('user_inventory')
         .delete()
         .eq('id', inventory_id)
@@ -110,7 +110,7 @@ export async function DELETE(req: NextRequest) {
       }
     } else {
       // Update quantity
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('user_inventory')
         .update({ quantity: newQuantity })
         .eq('id', inventory_id)
