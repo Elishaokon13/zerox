@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Process the power-up based on type
-    let result: any = { success: true, power_up_type: power_up_type };
+    const result: any = { success: true, power_up_type: power_up_type };
 
     switch (power_up_type) {
       case 'points':
