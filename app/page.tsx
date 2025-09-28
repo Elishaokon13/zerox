@@ -48,6 +48,11 @@ export default function Home() {
   const [selectingBlock, setSelectingBlock] = useState(false);
   const [doubleActive, setDoubleActive] = useState(false);
   const [doublePendingSecond, setDoublePendingSecond] = useState(false);
+  
+  // Try Again power-up state
+  const [tryAgainActive, setTryAgainActive] = useState(false);
+  const [lastMoveIndex, setLastMoveIndex] = useState<number | null>(null);
+  const [tryAgainUsed, setTryAgainUsed] = useState(false);
   // Play page only (tabs split into routes)
 
   const startNewGameRound = useCallback(() => {
