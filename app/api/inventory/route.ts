@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'address required' }, { status: 400 });
     }
 
-    if (!supabase) {
+    if (!supabase || !supabaseAdmin) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
@@ -77,7 +77,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'address and inventory_id required' }, { status: 400 });
     }
 
-    if (!supabase) {
+    if (!supabase || !supabaseAdmin) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
