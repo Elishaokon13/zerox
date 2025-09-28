@@ -49,13 +49,6 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Load inventory when panel opens
-  useEffect(() => {
-    if (isOpen && address) {
-      loadInventory();
-    }
-  }, [isOpen, address, loadInventory]);
-
   const loadInventory = useCallback(async () => {
     setLoading(true);
     try {
@@ -72,6 +65,13 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
       setLoading(false);
     }
   }, [address]);
+
+  // Load inventory when panel opens
+  useEffect(() => {
+    if (isOpen && address) {
+      loadInventory();
+    }
+  }, [isOpen, address, loadInventory]);
 
   const getItemIcon = (itemType: string) => {
     switch (itemType) {
