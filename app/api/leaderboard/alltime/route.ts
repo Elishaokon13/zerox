@@ -1,18 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function GET() {
-  if (!supabase) return NextResponse.json({ top: [] });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '20');
+  const offset = (page - 1) * limit;
+  
+  if (!supabase) return NextResponse.json({ top: [], pagination: { page, limit, hasMore: false } });
 
   // Get all-time stats aggregated by address
   const { data, error } = await supabase
     .rpc('get_alltime_leaderboard')
-    .limit(10);
+    .range(offset, offset + limit - 1);
 
-  if (error) return NextResponse.json({ top: [] });
+  if (error) return NextResponse.json({ top: [], pagination: { page, limit, hasMore: false } });
 
   const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; fid?: number; }, i: number) => ({ 
-    rank: i + 1, 
+    rank: offset + i + 1, 
     address: r.address, 
     alias: r.alias ?? undefined, 
     pfpUrl: r.pfp_url ?? undefined, 
@@ -23,5 +28,11 @@ export async function GET() {
     fid: r.fid
   }));
 
-  return NextResponse.json({ top });
+  // Check if there are more entries
+  const hasMore = data && data.length === limit;
+
+  return NextResponse.json({ 
+    top, 
+    pagination: { page, limit, hasMore }
+  });
 }
