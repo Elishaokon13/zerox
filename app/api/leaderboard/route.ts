@@ -77,7 +77,12 @@ export async function GET(req: NextRequest) {
     totalChargeEth = Array.isArray(chargeRows) ? chargeRows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0) : 0;
     totalUsers = typeof userCount === 'number' ? userCount : 0;
   } catch {}
-  return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top, totals: { totalPayoutEth, totalChargeEth, totalUsers } });
+  return NextResponse.json({ 
+    season: { start: season, end: seasonEndISO() }, 
+    top, 
+    totals: { totalPayoutEth, totalChargeEth, totalUsers },
+    pagination: { page, limit, hasMore }
+  });
 }
 
 export async function POST(req: NextRequest) {
