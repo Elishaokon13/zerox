@@ -1022,7 +1022,7 @@ export default function Home() {
               </button>
               */}
               <button
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-black text-white border-yellow-400 font-bold flex-1 sm:flex-none min-w-0"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-black text-white font-bold flex-1 sm:flex-none min-w-0"
                 onClick={() => setShowLootboxModal(true)}
               >
                 🎁 Lootbox
