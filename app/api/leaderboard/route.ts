@@ -20,14 +20,9 @@ function seasonEndISO(): string {
   return end.toISOString().slice(0, 10);
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const season = seasonStartISO();
-  const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '20');
-  const offset = (page - 1) * limit;
-  
-  if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
+  if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
   
   // Try without the user_notifications join first
   const { data, error } = await supabase
@@ -45,12 +40,11 @@ export async function GET(req: NextRequest) {
     .order('points', { ascending: false })
     .order('wins', { ascending: false })
     .order('updated_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .limit(10);
   
-  if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 }, pagination: { page, limit, hasMore: false } });
-  
+  if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
   const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
-    rank: offset + i + 1, 
+    rank: i + 1, 
     address: r.address, 
     alias: r.alias ?? undefined, 
     pfpUrl: r.pfp_url ?? undefined, 
@@ -60,9 +54,6 @@ export async function GET(req: NextRequest) {
     points: r.points,
     fid: undefined // FID will be undefined for now since we removed the join
   }));
-  
-  // Check if there are more entries
-  const hasMore = data && data.length === limit;
   // Totals: sum payouts, charges, and total unique users this season
   let totalPayoutEth = 0;
   let totalChargeEth = 0;
@@ -77,12 +68,7 @@ export async function GET(req: NextRequest) {
     totalChargeEth = Array.isArray(chargeRows) ? chargeRows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0) : 0;
     totalUsers = typeof userCount === 'number' ? userCount : 0;
   } catch {}
-  return NextResponse.json({ 
-    season: { start: season, end: seasonEndISO() }, 
-    top, 
-    totals: { totalPayoutEth, totalChargeEth, totalUsers },
-    pagination: { page, limit, hasMore }
-  });
+  return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top, totals: { totalPayoutEth, totalChargeEth, totalUsers } });
 }
 
 export async function POST(req: NextRequest) {
