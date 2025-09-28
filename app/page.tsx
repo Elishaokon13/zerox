@@ -936,7 +936,7 @@ export default function Home() {
       <WalletCheck>
         {toast && (
           <div
-            className="fixed top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg border"
+            className="fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-50 px-3 sm:px-4 py-2 rounded shadow-lg border text-xs sm:text-sm max-w-[90vw] sm:max-w-none"
             style={{
               backgroundColor: gameStatus === 'won' ? '#70FF5A' : gameStatus === 'lost' ? '#000000' : '#ffffff',
               color: gameStatus === 'lost' ? '#ffffff' : '#000000',
