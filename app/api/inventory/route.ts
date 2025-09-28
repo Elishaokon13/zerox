@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
 
     const addr = address.toLowerCase();
 
-    // Get user's inventory with item details
-    const { data: inventory, error } = await supabase
+    // Get user's inventory with item details (use admin client to bypass RLS)
+    const { data: inventory, error } = await supabaseAdmin
       .from('user_inventory')
       .select(`
         id,
