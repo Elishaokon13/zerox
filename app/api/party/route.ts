@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // PARTY API ROUTE - COMMENTED OUT FOR NOW
 // TODO: Re-enable when party mode is properly implemented
 
