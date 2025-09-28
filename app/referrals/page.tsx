@@ -24,13 +24,18 @@ export default function ReferralsPage() {
   // const bottomNavHeight = 64 + bottomInset;
 
   const fetchReferralStats = useCallback(async () => {
-    if (!address) return;
+    if (!address) {
+      console.log('No address available for referrals');
+      return;
+    }
 
+    console.log('Fetching referral stats for address:', address);
     setLoading(true);
     try {
       const response = await fetch(`/api/referral?address=${address}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Referral stats data:', data);
         setReferralStats(data);
       } else {
         console.error('Failed to fetch referral stats');
