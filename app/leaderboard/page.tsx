@@ -22,14 +22,11 @@ type TabType = 'weekly' | 'alltime' | 'onchain';
 
 function LeaderboardTab() {
   const [loading, setLoading] = React.useState(true);
-  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [season, setSeason] = React.useState<{ start: string; end: string } | null>(null);
   const [rows, setRows] = React.useState<Array<TopRow>>([]);
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
   const viewProfile = useViewProfile();
   const { address } = useAccount();
   const { score: onchainScore, isRecording } = useScoreboard();
@@ -38,18 +35,14 @@ function LeaderboardTab() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      setCurrentPage(1);
-      setHasMore(true);
       try {
         const endpoint = activeTab === 'weekly' ? '/api/leaderboard' : '/api/leaderboard/alltime';
-        const res = await fetch(`${endpoint}?page=1&limit=20`);
+        const res = await fetch(endpoint);
         const data = await res.json();
         setSeason(activeTab === 'weekly' ? (data?.season ?? null) : null);
         const rowsFromApi = (Array.isArray(data?.top) ? data.top : []) as Array<TopRow>;
         setRows(rowsFromApi);
-        setHasMore(data?.pagination?.hasMore ?? false);
-      } catch (error) {
-        console.error('Failed to load leaderboard:', error);
+      } catch {
         setError('Failed to load leaderboard');
       } finally {
         setLoading(false);
@@ -57,26 +50,6 @@ function LeaderboardTab() {
     };
     load();
   }, [activeTab]);
-
-  const loadMore = React.useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    
-    setLoadingMore(true);
-    try {
-      const nextPage = currentPage + 1;
-      const endpoint = activeTab === 'weekly' ? '/api/leaderboard' : '/api/leaderboard/alltime';
-      const res = await fetch(`${endpoint}?page=${nextPage}&limit=20`);
-      const data = await res.json();
-      const newRows = (Array.isArray(data?.top) ? data.top : []) as Array<TopRow>;
-      setRows(prev => [...prev, ...newRows]);
-      setCurrentPage(nextPage);
-      setHasMore(data?.pagination?.hasMore ?? false);
-    } catch {
-      setError('Failed to load more entries');
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadingMore, hasMore, currentPage, activeTab]);
 
   useEffect(() => {
     if (!season?.end) return;
@@ -95,32 +68,9 @@ function LeaderboardTab() {
     return () => clearInterval(id);
   }, [season]);
 
-  // Infinite scroll detection - temporarily disabled for debugging
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
-  //       loadMore();
-  //     }
-  //   };
-
-  //   window.addEventListener('scroll', handleScroll);
-  //   return () => window.removeEventListener('scroll', handleScroll);
-  // }, [loadMore]);
-
   return (
     <div className="w-full max-w-md mx-auto px-4">
       <h1 className="text-4xl font-black text-center mb-8 text-black tracking-wider">LEADERBOARD</h1>
-      
-      {/* Debug info */}
-      <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-        <div>Loading: {loading ? 'true' : 'false'}</div>
-        <div>Error: {error || 'none'}</div>
-        <div>Rows: {rows.length}</div>
-        <div>Active Tab: {activeTab}</div>
-        <div>Current Page: {currentPage}</div>
-        <div>Has More: {hasMore ? 'true' : 'false'}</div>
-        <div>Time: {new Date().toLocaleTimeString()}</div>
-      </div>
       
       <div className="flex justify-center gap-8 mb-6">
         <button 
@@ -143,34 +93,16 @@ function LeaderboardTab() {
         >
           ALL TIME
         </button>
-      </div>
-      
-      {/* Test button */}
-      <div className="mb-4 text-center">
-        <button 
-          onClick={() => {
-            console.log('Manual load triggered');
-            setLoading(true);
-            setCurrentPage(1);
-            setHasMore(true);
-            fetch('/api/leaderboard?page=1&limit=5')
-              .then(res => res.json())
-              .then(data => {
-                console.log('Manual fetch result:', data);
-                setRows(data.top || []);
-                setHasMore(data.pagination?.hasMore ?? false);
-                setLoading(false);
-              })
-              .catch(err => {
-                console.error('Manual fetch error:', err);
-                setError('Failed to load');
-                setLoading(false);
-              });
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
+        {/* <button 
+          className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
+            activeTab === 'onchain' 
+              ? 'text-black border-black' 
+              : 'text-[#9CA3AF] border-transparent'
+          }`}
+          onClick={() => setActiveTab('onchain')}
         >
-          Test Load
-        </button>
+          ONCHAIN
+        </button> */}
       </div>
 
       {activeTab === 'onchain' ? (
@@ -223,7 +155,6 @@ function LeaderboardTab() {
         </div>
       ) : loading ? (
         <div className="space-y-4">
-          <div className="text-center text-sm text-gray-500">Loading leaderboard...</div>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-16 rounded-2xl bg-[#F3F4F6] animate-pulse" />
           ))}
@@ -310,27 +241,6 @@ function LeaderboardTab() {
               </div>
             );
           })}
-          
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="mt-6 text-center">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="px-6 py-3 rounded-lg bg-[#70FF5A] text-black font-semibold hover:bg-[#60E54A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingMore ? 'Loading...' : 'Load More'}
-              </button>
-            </div>
-          )}
-          
-          {/* Loading More Indicator */}
-          {loadingMore && (
-            <div className="mt-4 text-center">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#70FF5A]"></div>
-              <div className="text-sm text-[#9CA3AF] mt-2">Loading more entries...</div>
-            </div>
-          )}
         </div>
       )}
 
