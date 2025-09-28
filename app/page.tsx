@@ -522,6 +522,15 @@ export default function Home() {
       }
       return;
     }
+
+    // If Try Again is active, stay on player's turn for potential undo
+    if (tryAgainActive && !tryAgainUsed) {
+      // Don't switch to AI turn yet - player can undo
+      return;
+    }
+
+    // Switch to AI turn
+    setIsPlayerTurn(false);
   };
 
   useEffect(() => {
