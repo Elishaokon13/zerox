@@ -84,7 +84,7 @@ export async function DELETE(req: NextRequest) {
     const addr = address.toLowerCase();
 
     // Get current quantity
-    const { data: currentItem } = await supabase
+    const { data: currentItem } = await supabaseAdmin
       .from('user_inventory')
       .select('quantity')
       .eq('id', inventory_id)
