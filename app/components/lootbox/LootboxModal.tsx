@@ -61,8 +61,9 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
   }, [address]);
 
   const openLootbox = useCallback(async () => {
-    if (!address || !dailyStatus.can_open) return;
+    if (!address || !dailyStatus.can_open || hasOpenedRef.current) return;
 
+    hasOpenedRef.current = true;
     setIsOpening(true);
     setReceivedItem(null);
 
