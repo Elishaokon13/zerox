@@ -185,7 +185,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                 }}
                 className="w-40 h-40 mx-auto relative"
               >
-                <i>
+                <img src="/lootbox.png" alt="Lootbox" className="w-full h-full object-cover" />
               </motion.div>
             ) : receivedItem ? (
               <motion.div
