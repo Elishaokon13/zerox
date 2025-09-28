@@ -1,3 +1,7 @@
+// PARTY ROUTE - COMMENTED OUT FOR NOW
+// TODO: Re-enable when party mode is properly implemented
+
+/*
 'use client';
 
 import { useAccount } from 'wagmi';
@@ -40,5 +44,18 @@ export default function PartyPage() {
       </main>
       <BottomNav />
     </>
+  );
+}
+*/
+
+// Temporary placeholder component
+export default function PartyPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-700 mb-4">Party Mode</h1>
+        <p className="text-gray-500">Coming soon! This feature is under development.</p>
+      </div>
+    </div>
   );
 }
