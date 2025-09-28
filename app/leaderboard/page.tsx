@@ -94,6 +94,18 @@ function LeaderboardTab() {
     return () => clearInterval(id);
   }, [season]);
 
+  // Infinite scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadMore]);
+
   return (
     <div className="w-full max-w-md mx-auto px-4">
       <h1 className="text-4xl font-black text-center mb-8 text-black tracking-wider">LEADERBOARD</h1>
