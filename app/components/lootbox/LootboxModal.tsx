@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAccount } from 'wagmi';
+import Confetti from 'react-confetti';
 
 interface LootboxItem {
   id: number;
