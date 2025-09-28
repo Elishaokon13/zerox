@@ -67,6 +67,18 @@ export default function ReferralsPage() {
   return (
     <>
       <div className="min-h-screen" style={{ backgroundColor: '#ffffff' }}>
+        {toast && (
+          <div
+            className="fixed top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg border"
+            style={{
+              backgroundColor: '#70FF5A',
+              color: '#000',
+              borderColor: '#e5e7eb',
+            }}
+          >
+            {toast}
+          </div>
+        )}
         <div className="w-full max-w-md mx-auto pt-10">
           <WalletCheck>
             <div className="px-4">
