@@ -218,7 +218,7 @@ function LeaderboardTab() {
                       alt={r.alias || 'pfp'} 
                       width={40} 
                       height={40} 
-                      className="rounded-full object-cover border-2 border-transparent hover:border-[#70FF5A] transition-colors"
+                      className="rounded-md w-10 h-10 object-cover border-2 border-transparent hover:border-[#70FF5A] transition-colors"
                     />
                   </div>
                   <div>
