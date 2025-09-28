@@ -57,7 +57,7 @@ function LeaderboardTab() {
     load();
   }, [activeTab]);
 
-  const loadMore = async () => {
+  const loadMore = React.useCallback(async () => {
     if (loadingMore || !hasMore) return;
     
     setLoadingMore(true);
@@ -75,7 +75,7 @@ function LeaderboardTab() {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [loadingMore, hasMore, currentPage, activeTab]);
 
   useEffect(() => {
     if (!season?.end) return;
