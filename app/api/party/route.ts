@@ -209,5 +209,5 @@ export async function PUT(req: Request) {
 }
 
 export async function GET(req: Request) {
-  return NextResponse.json({ error: 'Party mode is under development' }, { status: 503 });
+  return Response.json({ error: 'Party mode is under development' }, { status: 503 });
 }
