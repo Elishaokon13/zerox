@@ -533,9 +533,27 @@ export default function Home() {
       return;
     }
 
-    // Switch to AI turn
-    setIsPlayerTurn(false);
+  // Switch to AI turn
+  setIsPlayerTurn(false);
   };
+
+  // Handle Try Again power-up
+  const handleTryAgain = useCallback(() => {
+    if (!tryAgainActive || tryAgainUsed || lastMoveIndex === null) return;
+    
+    // Undo the last move
+    const newBoard = [...board];
+    newBoard[lastMoveIndex] = null;
+    setBoard(newBoard);
+    
+    // Mark as used and deactivate
+    setTryAgainUsed(true);
+    setTryAgainActive(false);
+    setLastMoveIndex(null);
+    
+    // Show feedback
+    showToast('Move undone! Make a different move.');
+  }, [tryAgainActive, tryAgainUsed, lastMoveIndex, board, showToast]);
 
   useEffect(() => {
     if (!isPlayerTurn && gameStatus === 'playing') {
