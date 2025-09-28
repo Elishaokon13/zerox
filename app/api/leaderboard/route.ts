@@ -17,7 +17,7 @@ function seasonEndISO(): string {
   const start = new Date(seasonStartISO());
   const end = new Date(start);
   end.setUTCDate(start.getUTCDate() + 7);
-  return end.toISOString().slice(0, 30);
+  return end.toISOString().slice(0, 10);
 }
 
 export async function GET() {
