@@ -146,7 +146,6 @@ export default function ReferralsPage() {
                       <div>• Track your earnings and referral count here</div>
                     </div>
                   </div>
-                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
