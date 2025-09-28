@@ -185,7 +185,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                 }}
                 className="w-40 h-40 mx-auto relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl shadow-2xl animate-pulse" 
+                <<div className="absolute inset-0 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl shadow-2xl animate-pulse" 
                      style={{ 
                        boxShadow: '0 0 50px rgba(239, 68, 68, 0.8), 0 0 100px rgba(239, 68, 68, 0.4)',
                        background: 'radial-gradient(circle, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
@@ -203,7 +203,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                     <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">P</div>
                     <div className="bg-red-500 rounded text-xs flex items-center justify-center text-white font-bold">X</div>
                   </div>
-                </div>
+                </div>>
               </motion.div>
             ) : receivedItem ? (
               <motion.div
