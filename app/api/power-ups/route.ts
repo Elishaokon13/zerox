@@ -54,7 +54,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No quantity remaining' }, { status: 400 });
     }
 
-    const item = inventoryItem.lootbox_items;
+    const item = inventoryItem.lootbox_items[0];
+
+    if (!item) {
+      return NextResponse.json({ error: 'Item details not found' }, { status: 404 });
+    }
 
     // Validate power-up type matches item type
     if (item.item_type !== power_up_type) {
