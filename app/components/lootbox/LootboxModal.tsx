@@ -76,7 +76,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
     }
   }, [isOpen, isAutoPopup, address, dailyStatus.can_open, openLootbox]);
 
-  const fetchLootboxStatus = async () => {
+  const fetchLootboxStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/lootbox?address=${address}`);
       if (response.ok) {
@@ -86,7 +86,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
     } catch (error) {
       console.error('Failed to fetch lootbox status:', error);
     }
-  };
+  }, [address]);
 
   const openLootbox = async () => {
     if (!address || !dailyStatus.can_open) return;
