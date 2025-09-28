@@ -133,6 +133,13 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
     }
   }, [isOpen, isAutoPopup, address, dailyStatus.can_open]);
 
+  // Reset ref when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      hasOpenedRef.current = false;
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
