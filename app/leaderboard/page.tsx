@@ -124,6 +124,9 @@ function LeaderboardTab() {
         <div>Error: {error || 'none'}</div>
         <div>Rows: {rows.length}</div>
         <div>Active Tab: {activeTab}</div>
+        <div>Current Page: {currentPage}</div>
+        <div>Has More: {hasMore ? 'true' : 'false'}</div>
+        <div>Time: {new Date().toLocaleTimeString()}</div>
       </div>
       
       <div className="flex justify-center gap-8 mb-6">
