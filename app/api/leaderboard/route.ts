@@ -32,10 +32,11 @@ export async function GET(req?: NextRequest) {
   console.log('Querying leaderboard for season:', season);
   
   // First, let's check if there are any entries at all
-  const { data: allEntries } = await supabase
+  const { data: allEntries, error: allEntriesError } = await supabase
     .from('leaderboard_entries')
     .select('season')
     .limit(5);
+  console.log('All seasons query result:', { allEntries, allEntriesError });
   console.log('All seasons in database:', allEntries?.map(e => e.season));
   
   const { data, error } = await supabase
