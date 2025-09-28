@@ -40,7 +40,7 @@ export default function Home() {
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [streak, setStreak] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
+  // const [showSettings, setShowSettings] = useState(false); // Commented out for now
   // Power-ups state (removed quick actions; keep minimal hints/block support for board UI)
   const [hintIndex, setHintIndex] = useState<number | null>(null);
   const [blockedCellIndex, setBlockedCellIndex] = useState<number | null>(null);
@@ -155,8 +155,6 @@ export default function Home() {
 
 
 
-  const [referralStats, setReferralStats] = useState({ totalReferrals: 0, totalPoints: 0 });
-  const [showReferralModal, setShowReferralModal] = useState(false);
   const [farcasterUsername, setFarcasterUsername] = useState<string>('');
   const [farcasterPfpUrl, setFarcasterPfpUrl] = useState<string>('');
   
@@ -176,77 +174,6 @@ export default function Home() {
     streakRecovery?: boolean;
   }>({});
 
-  // Load referral stats
-  const loadReferralStats = useCallback(async () => {
-    const userAddress = address;
-    if (!userAddress) return;
-    try {
-      const response = await fetch(`/api/referral?address=${userAddress}`);
-      const data = await response.json();
-      if (response.ok) {
-        setReferralStats({
-          totalReferrals: data.totalReferrals,
-          totalPoints: data.totalPoints
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load referral stats:', error);
-    }
-  }, [address]);
-
-  // Generate referral link
-  const getReferralLink = useCallback(() => {
-    const userAddress = address;
-    console.log('getReferralLink called:', { address, userAddress });
-    if (!userAddress) return '';
-    const baseUrl = process.env.NEXT_PUBLIC_URL || window.location.origin;
-    const link = `${baseUrl}?ref=${userAddress}`;
-    console.log('Generated referral link:', link);
-    return link;
-  }, [address]);
-
-  // Copy referral link to clipboard
-  const copyReferralLink = useCallback(async () => {
-    const link = getReferralLink();
-    const userAddress = address;
-    console.log('copyReferralLink called:', { link, address, userAddress });
-    if (!link) {
-      showToast('No referral link available - address not found');
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(link);
-      showToast('Referral link copied!');
-    } catch (error) {
-      console.error('Failed to copy link:', error);
-      showToast('Failed to copy link');
-    }
-  }, [getReferralLink, showToast, address]);
-
-  // Share referral via cast
-  const shareReferralCast = useCallback(async () => {
-    const link = getReferralLink();
-    if (!link) {
-      showToast('No referral link available - address not found');
-      return;
-    }
-    
-    try {
-      await composeCast({
-        text: `🎮 Join me in ZeroX TicTacToe! Play games, earn points, and compete for weekly ETH rewards! 🏆\n\nPlay now: ${link}`,
-        embeds: [window.location.origin]
-      });
-      showToast('Cast composed! Share your referral with the community! 🚀');
-    } catch (error) {
-      console.error('Failed to compose cast:', error);
-      showToast('Failed to compose cast');
-    }
-  }, [getReferralLink, showToast, composeCast]);
-
-  // Load referral stats when address changes
-  useEffect(() => {
-    loadReferralStats();
-  }, [loadReferralStats]);
 
   // Load user points when address changes
   const fetchUserPoints = useCallback(async () => {
@@ -354,7 +281,6 @@ export default function Home() {
       }).then(response => {
         if (response.ok) {
           showToast('Welcome! You were referred by a friend!');
-          loadReferralStats(); // Refresh stats
           fetchUserPoints(); // Refresh points display
         }
       }).catch(error => {
@@ -366,7 +292,7 @@ export default function Home() {
       newUrl.searchParams.delete('ref');
       window.history.replaceState({}, '', newUrl.toString());
     }
-  }, [address, loadReferralStats, showToast, fetchUserPoints]);
+  }, [address, showToast, fetchUserPoints]);
 
 
   // Read challenge params from URL to prefill
@@ -1028,18 +954,15 @@ export default function Home() {
               {configText}
             </div>
             <div className="w-full flex justify-center gap-2 flex-wrap">
+              {/* Settings button - commented out for now */}
+              {/*
               <button
                 className="px-4 py-1.5 rounded-full text-sm border bg-white text-[#000000] border-[#70FF5A]"
                 onClick={() => setShowSettings((v) => !v)}
               >
                 {showSettings ? 'Close Settings' : 'Settings'}
               </button>
-              <button
-                className="px-4 py-1.5 rounded-full text-sm border bg-white text-[#000000] border-[#70FF5A]"
-                onClick={() => setShowReferralModal(true)}
-              >
-                Referrals ({referralStats.totalReferrals})
-              </button>
+              */}
               <button
                 className="px-4 py-1.5 rounded-full text-sm border bg-gradient-to-r from-yellow-400 to-orange-500 text-black border-yellow-400 font-bold"
                 onClick={() => setShowLootboxModal(true)}
@@ -1053,6 +976,8 @@ export default function Home() {
                 🎒 Inventory
               </button>
             </div>
+            {/* Settings modal - commented out for now */}
+            {/*
             {showSettings && (
               <div className="w-full max-w-md mx-auto p-3 rounded-xl bg-white/90 border border-[#70FF5A]/30 text-[#066c00]">
                 <div className="text-xs font-semibold mb-2" style={{ color: '#066c00' }}>Variants</div>
@@ -1073,18 +998,17 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                {/* <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2">
                   <button
                     className={`px-3 py-1 rounded-full text-sm border ${misere?'bg-[#70FF5A] text-white border-[#70FF5A]':'bg-white text-[#70FF5A] border-[#70FF5A]'}`}
                     onClick={() => { const next = !misere; setMisere(next); setGameStatus('playing'); setWinningLine(null); setBoard((b)=>b.map(()=>null)); }}
                   >
                     Misère
                   </button>
-                </div> */}
-
-                
+                </div>
               </div>
             )}
+            */}
           </div>
           <GameStatus status={gameStatus} isPlayerTurn={isPlayerTurn} secondsLeft={secondsLeft ?? null} />
           {/* Compact level/XP/streak summary above the board */}
@@ -1258,64 +1182,6 @@ export default function Home() {
     </main>
     <BottomNav />
     
-    {/* Referral Modal */}
-    {showReferralModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-black">Referral Program</h2>
-            <button
-              onClick={() => setShowReferralModal(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Debug info */}
-            {/* Debug info removed */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#70FF5A]">{referralStats.totalReferrals}</div>
-              <div className="text-sm text-gray-600">Total Referrals</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#70FF5A]">{referralStats.totalPoints}</div>
-              <div className="text-sm text-gray-600">Points Earned</div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">Your Referral Link:</div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={getReferralLink()}
-                  readOnly
-                  className="flex-1 px-3 py-2 border rounded-lg text-sm text-black bg-white"
-                />
-                <button
-                  onClick={copyReferralLink}
-                  className="px-4 py-2 bg-[#70FF5A] text-black rounded-lg text-sm font-medium hover:bg-[#5FE04A]"
-                >
-                  Copy
-                </button>
-                <button
-                  onClick={shareReferralCast}
-                  className="px-4 py-2 bg-[#1DA1F2] text-white rounded-lg text-sm font-medium hover:bg-[#1A91DA]"
-                >
-                  Share
-                </button>
-              </div>
-            </div>
-            
-            <div className="text-xs text-gray-500 text-center">
-              Earn 2 points for each friend you refer! Share your link and start earning.
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
     
         {/* Lootbox Modal */}
         <LootboxModal
