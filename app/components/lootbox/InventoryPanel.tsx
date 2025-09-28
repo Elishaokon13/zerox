@@ -131,13 +131,13 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
               <div className="text-gray-500">Loading inventory...</div>
             </div>
           ) : inventory.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Empty Inventory</h3>
-              <p className="text-gray-500">Open lootboxes to get power-ups!</p>
+            <div className="text-center py-6 sm:py-8">
+              <div className="text-4xl sm:text-6xl mb-4">📦</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">Empty Inventory</h3>
+              <p className="text-gray-500 text-sm sm:text-base">Open lootboxes to get power-ups!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
               {inventory.map((item) => (
                 <motion.div
                   key={item.inventory_id}
