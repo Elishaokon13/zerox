@@ -111,16 +111,16 @@ export async function POST(req: NextRequest) {
       console.error('Failed to record lootbox opening:', openingError);
     }
 
-    // Update daily tracking
-    const { error: trackingError } = await supabase
-      .from('daily_lootbox_tracking')
-      .upsert({
-        address: addr,
-        date: today,
-        lootboxes_earned: (todayTracking?.lootboxes_earned || 0) + 1
-      }, {
-        onConflict: 'address,date'
-      });
+            // Update daily tracking
+            const { error: trackingError } = await supabaseAdmin
+              .from('daily_lootbox_tracking')
+              .upsert({
+                address: addr,
+                date: today,
+                lootboxes_earned: (todayTracking?.lootboxes_earned || 0) + 1
+              }, {
+                onConflict: 'address,date'
+              });
 
     if (trackingError) {
       console.error('Failed to update daily tracking:', trackingError);
