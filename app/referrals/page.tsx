@@ -101,7 +101,7 @@ export default function ReferralsPage() {
                   <div className="text-xs text-gray-500 mb-2">
                     Debug: {JSON.stringify(referralStats, null, 2)}
                   </div>
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   {/* Stats Cards */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-white rounded-2xl border border-[#F3F4F6] text-center">
