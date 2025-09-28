@@ -186,7 +186,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
           </div>
 
           {/* Lootbox Opening Animation */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             {isOpening ? (
               <motion.div
                 initial={{ scale: 1 }}
@@ -199,7 +199,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="w-40 h-40 mx-auto relative"
+                className="w-32 h-32 sm:w-40 sm:h-40 mx-auto relative"
               >
                 <img src="/lootbox.png" alt="Lootbox" className="w-full h-full object-cover" />
               </motion.div>
@@ -208,7 +208,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                className={`w-32 h-32 mx-auto rounded-2xl flex items-center justify-center text-6xl shadow-2xl ${RARITY_GLOW[receivedItem.rarity]}`}
+                className={`w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-2xl flex items-center justify-center text-4xl sm:text-6xl shadow-2xl ${RARITY_GLOW[receivedItem.rarity]}`}
                 style={{ 
                   backgroundColor: RARITY_COLORS[receivedItem.rarity],
                   boxShadow: `0 0 30px ${RARITY_COLORS[receivedItem.rarity]}50`
@@ -224,7 +224,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
               </motion.div>
             ) : (
               <motion.div 
-                className="w-40 h-40 mx-auto relative cursor-pointer hover:scale-105 transition-transform"
+                className="w-32 h-32 sm:w-40 sm:h-40 mx-auto relative cursor-pointer hover:scale-105 transition-transform"
                 onClick={openLootbox}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
