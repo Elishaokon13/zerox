@@ -132,7 +132,20 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        {/* Confetti */}
+        {showConfetti && (
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={false}
+            numberOfPieces={200}
+            gravity={0.3}
+            initialVelocityY={20}
+            colors={['#70FF5A', '#4A90E2', '#9B59B6', '#F39C12', '#E74C3C', '#F1C40F']}
+          />
+        )}
+        
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
