@@ -85,9 +85,9 @@ export function Navbar() {
                 <Image
                   src={fcUser.pfpUrl}
                   alt={fcUser.username || 'profile'}
-                  width={24}
-                  height={24}
-                  className="rounded-full"
+                  width={32}
+                  height={32}
+                  className="rounded-md"
                 />
               )}
             </div>
