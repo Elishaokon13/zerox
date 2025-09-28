@@ -169,9 +169,9 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
           className="bg-white rounded-2xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-2 text-center relative overflow-hidden"
         >
           {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-black mb-2">🎁 Daily Lootbox</h2>
-            <p className="text-gray-600 text-sm">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-black mb-2">🎁 Daily Lootbox</h2>
+            <p className="text-gray-600 text-xs sm:text-sm px-2">
               {dailyStatus.remaining > 0 
                 ? `${dailyStatus.remaining} lootbox${dailyStatus.remaining > 1 ? 'es' : ''} remaining today`
                 : 'No lootboxes remaining today'
