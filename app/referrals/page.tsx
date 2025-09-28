@@ -44,7 +44,7 @@ export default function ReferralsPage() {
 
   useEffect(() => {
     fetchReferralStats();
-  }, [address]);
+  }, [address, fetchReferralStats]);
 
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (message: string) => {
