@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!supabase) {
+    if (!supabase || !supabaseAdmin) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'address required' }, { status: 400 });
     }
 
-    if (!supabase) {
+    if (!supabase || !supabaseAdmin) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
