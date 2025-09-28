@@ -179,17 +179,6 @@ function LeaderboardTab() {
           Test Load
         </button>
       </div>
-        {/* <button 
-          className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
-            activeTab === 'onchain' 
-              ? 'text-black border-black' 
-              : 'text-[#9CA3AF] border-transparent'
-          }`}
-          onClick={() => setActiveTab('onchain')}
-        >
-          ONCHAIN
-        </button> */}
-      </div>
 
       {activeTab === 'onchain' ? (
        
