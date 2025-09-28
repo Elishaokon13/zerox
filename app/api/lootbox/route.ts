@@ -63,11 +63,11 @@ export async function POST(req: NextRequest) {
       }, { status: 429 });
     }
 
-    // Get all available lootbox items (bypass RLS for public data)
-    const { data: items, error: itemsError } = await supabase
-      .from('lootbox_items')
-      .select('*')
-      .limit(100);
+            // Get all available lootbox items (use admin client to bypass RLS)
+            const { data: items, error: itemsError } = await supabaseAdmin
+              .from('lootbox_items')
+              .select('*')
+              .limit(100);
 
     if (itemsError) {
       console.error('Error fetching lootbox items:', itemsError);
