@@ -1,3 +1,7 @@
+// PARTY MOVE API ROUTE - COMMENTED OUT FOR NOW
+// TODO: Re-enable when party mode is properly implemented
+
+/*
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import Pusher from 'pusher';
@@ -126,4 +130,10 @@ function checkWinner(squares: Array<string | null>): boolean {
   }
 
   return false;
+}
+*/
+
+// Temporary placeholder API response
+export async function POST(req: Request) {
+  return NextResponse.json({ error: 'Party mode is under development' }, { status: 503 });
 }
