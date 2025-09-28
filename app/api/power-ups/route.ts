@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
 
     const addr = address.toLowerCase();
 
-    // Get the inventory item details
-    const { data: inventoryItem, error: inventoryError } = await supabase
+    // Get the inventory item details (use admin client to bypass RLS)
+    const { data: inventoryItem, error: inventoryError } = await supabaseAdmin
       .from('user_inventory')
       .select(`
         id,
