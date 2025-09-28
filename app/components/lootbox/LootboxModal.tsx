@@ -239,16 +239,16 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-lg"
+              className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg"
               style={{ 
                 backgroundColor: `${RARITY_COLORS[receivedItem.rarity]}20`,
                 border: `2px solid ${RARITY_COLORS[receivedItem.rarity]}`
               }}
             >
-              <h3 className="text-xl font-bold mb-2" style={{ color: RARITY_COLORS[receivedItem.rarity] }}>
+              <h3 className="text-lg sm:text-xl font-bold mb-2" style={{ color: RARITY_COLORS[receivedItem.rarity] }}>
                 {receivedItem.name}
               </h3>
-              <p className="text-gray-700 text-sm mb-2">{receivedItem.description}</p>
+              <p className="text-gray-700 text-xs sm:text-sm mb-2">{receivedItem.description}</p>
               <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: RARITY_COLORS[receivedItem.rarity] }}>
                 {receivedItem.rarity}
               </div>
