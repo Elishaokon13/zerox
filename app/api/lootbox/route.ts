@@ -63,12 +63,19 @@ export async function POST(req: NextRequest) {
       }, { status: 429 });
     }
 
-    // Get all available lootbox items
+    // Get all available lootbox items (bypass RLS for public data)
     const { data: items, error: itemsError } = await supabase
       .from('lootbox_items')
-      .select('*');
+      .select('*')
+      .limit(100);
 
-    if (itemsError || !items || items.length === 0) {
+    if (itemsError) {
+      console.error('Error fetching lootbox items:', itemsError);
+      return NextResponse.json({ error: 'Database error: ' + itemsError.message }, { status: 500 });
+    }
+    
+    if (!items || items.length === 0) {
+      console.error('No lootbox items found in database');
       return NextResponse.json({ error: 'No lootbox items available' }, { status: 500 });
     }
 
