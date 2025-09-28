@@ -21,8 +21,6 @@ type TopRow = { rank: number; address: string; alias?: string; pfpUrl?: string; 
 type TabType = 'weekly' | 'alltime' | 'onchain';
 
 function LeaderboardTab() {
-  console.log('LeaderboardTab component rendering');
-  
   const [loading, setLoading] = React.useState(true);
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
