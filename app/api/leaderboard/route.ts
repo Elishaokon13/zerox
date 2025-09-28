@@ -30,8 +30,7 @@ export async function GET() {
         wins,
         draws,
         losses,
-        points,
-        fid
+        points
       `)
       .eq('season', season.start)
       .order('points', { ascending: false })
