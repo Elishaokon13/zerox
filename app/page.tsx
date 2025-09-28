@@ -264,6 +264,59 @@ export default function Home() {
     }
   }, [address]);
 
+  // Handle power-up usage
+  const handlePowerUpUsage = useCallback(async (item: any) => {
+    if (!address) return;
+
+    try {
+      const response = await fetch('/api/power-ups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address,
+          inventory_id: item.inventory_id,
+          power_up_type: item.item_type,
+          game_session_id: sessionId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showToast(result.message || 'Power-up activated!');
+        
+        // Handle specific power-up effects
+        if (item.item_type === 'points') {
+          // Refresh points display
+          fetchUserPoints();
+        } else if (item.item_type === 'double_points') {
+          // Set double points multiplier for next game
+          setActivePowerUps(prev => ({ ...prev, doublePoints: true }));
+        } else if (item.item_type === 'try_again') {
+          // Enable try again for current move
+          setActivePowerUps(prev => ({ ...prev, tryAgain: true }));
+        } else if (item.item_type === 'help') {
+          // Enable AI help for current move
+          setActivePowerUps(prev => ({ ...prev, aiHelp: true }));
+        } else if (item.item_type === 'undo_step') {
+          // Enable undo for last move
+          setActivePowerUps(prev => ({ ...prev, undoStep: true }));
+        } else if (item.item_type === 'extra_life') {
+          // Enable extra life for current game
+          setActivePowerUps(prev => ({ ...prev, extraLife: true }));
+        } else if (item.item_type === 'streak_recovery') {
+          // Enable streak recovery
+          setActivePowerUps(prev => ({ ...prev, streakRecovery: true }));
+        }
+      } else {
+        const error = await response.json();
+        showToast(error.error || 'Failed to use power-up');
+      }
+    } catch (error) {
+      console.error('Failed to use power-up:', error);
+      showToast('Failed to use power-up');
+    }
+  }, [address, sessionId, showToast, fetchUserPoints]);
+
   useEffect(() => {
     fetchUserPoints();
   }, [fetchUserPoints]);
