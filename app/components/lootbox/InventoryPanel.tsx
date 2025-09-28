@@ -54,7 +54,7 @@ export function InventoryPanel({ isOpen, onClose, onUseItem }: InventoryPanelPro
     if (isOpen && address) {
       loadInventory();
     }
-  }, [isOpen, address]);
+  }, [isOpen, address, loadInventory]);
 
   const loadInventory = async () => {
     setLoading(true);
