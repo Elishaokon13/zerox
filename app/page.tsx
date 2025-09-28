@@ -1248,6 +1248,29 @@ export default function Home() {
         </div>
       </div>
     )}
+    
+    {/* Lootbox Modal */}
+    <LootboxModal
+      isOpen={showLootboxModal}
+      onClose={() => setShowLootboxModal(false)}
+      onItemReceived={(item) => {
+        showToast(`You received: ${item.name}!`);
+        // Refresh inventory if it's open
+        if (showInventoryPanel) {
+          // Trigger inventory refresh
+        }
+      }}
+    />
+    
+    {/* Inventory Panel */}
+    <InventoryPanel
+      isOpen={showInventoryPanel}
+      onClose={() => setShowInventoryPanel(false)}
+      onUseItem={(item) => {
+        // Handle power-up usage
+        handlePowerUpUsage(item);
+      }}
+    />
     </>
   );
 }
