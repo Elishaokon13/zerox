@@ -46,6 +46,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
   const [dailyStatus, setDailyStatus] = useState({ earned: 0, limit: 3, remaining: 3, can_open: true });
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const hasOpenedRef = useRef(false);
 
   const fetchLootboxStatus = useCallback(async () => {
     try {
