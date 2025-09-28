@@ -10,7 +10,7 @@ function seasonStartISO(): string {
   const daysSinceMonday = (day + 6) % 7; // 0 Mon .. 6 Sun
   const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   start.setUTCDate(start.getUTCDate() - daysSinceMonday);
-  return start.toISOString().slice(0, 30);
+  return start.toISOString().slice(0, 10);
 }
 
 function seasonEndISO(): string {
