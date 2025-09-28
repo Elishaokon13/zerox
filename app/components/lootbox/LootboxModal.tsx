@@ -20,6 +20,8 @@ interface LootboxModalProps {
   onClose: () => void;
   onItemReceived: (item: LootboxItem) => void;
   showToast: (message: string) => void;
+  isAutoPopup?: boolean;
+  onAutoClose?: () => void;
 }
 
 const RARITY_COLORS = {
