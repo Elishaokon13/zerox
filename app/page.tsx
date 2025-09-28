@@ -254,9 +254,12 @@ export default function Home() {
         } else if (item.item_type === 'double_points') {
           // Set double points multiplier for next game
           setActivePowerUps(prev => ({ ...prev, doublePoints: true }));
-        } else if (item.item_type === 'try_again') {
-          // Enable try again for current move
-          setActivePowerUps(prev => ({ ...prev, tryAgain: true }));
+                } else if (item.item_type === 'try_again') {
+                  // Enable try again for current move
+                  setActivePowerUps(prev => ({ ...prev, tryAgain: true }));
+                  setTryAgainActive(true);
+                  setTryAgainUsed(false);
+                  showToast('Try Again activated! You can undo your last move.');
         } else if (item.item_type === 'help') {
           // Enable AI help for current move
           setActivePowerUps(prev => ({ ...prev, aiHelp: true }));
