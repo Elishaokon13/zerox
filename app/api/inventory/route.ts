@@ -49,12 +49,21 @@ export async function GET(req: NextRequest) {
     const validItems = inventory?.filter(item => {
       if (!item.expires_at) return true; // No expiration
       return new Date(item.expires_at) > now;
-    }).map(item => ({
-      inventory_id: item.id,
-      quantity: item.quantity,
-      expires_at: item.expires_at,
-      ...item.lootbox_items
-    })) || [];
+    }).map(item => {
+      const lootboxItem = item.lootbox_items;
+      return {
+        inventory_id: item.id,
+        quantity: item.quantity,
+        expires_at: item.expires_at,
+        id: lootboxItem?.id,
+        item_type: lootboxItem?.item_type,
+        item_name: lootboxItem?.item_name,
+        description: lootboxItem?.description,
+        rarity: lootboxItem?.rarity,
+        points_value: lootboxItem?.points_value,
+        usage_type: lootboxItem?.usage_type
+      };
+    }) || [];
 
     return NextResponse.json({
       address: addr,
