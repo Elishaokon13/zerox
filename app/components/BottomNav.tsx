@@ -8,13 +8,13 @@ export function BottomNav() {
   const pathname = usePathname();
   const { context } = useMiniKit();
   const bottomInset = context?.client?.safeAreaInsets?.bottom ?? 0;
-  const currentTab: 'daily' | 'play' | 'party' | 'leaderboard' = pathname?.startsWith('/daily')
+  // PARTY MODE - COMMENTED OUT FOR NOW
+  // TODO: Re-enable when party mode is properly implemented
+  const currentTab: 'daily' | 'play' | 'leaderboard' = pathname?.startsWith('/daily')
     ? 'daily'
-    : pathname?.startsWith('/party')
-      ? 'party'
-      : pathname?.startsWith('/leaderboard')
-        ? 'leaderboard'
-        : 'play';
+    : pathname?.startsWith('/leaderboard')
+      ? 'leaderboard'
+      : 'play';
 
   return (
     <div className="fixed left-0 right-0 bottom-0 z-40 bg-black border-t border-[#e5e7eb]" style={{ paddingBottom: bottomInset }}>
