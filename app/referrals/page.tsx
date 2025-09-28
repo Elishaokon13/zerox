@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface ReferralStats {
   totalReferrals: number;
-  totalEarnings: number;
+  totalPoints: number;
   referralCode: string;
   referralLink: string;
 }
