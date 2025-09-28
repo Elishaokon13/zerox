@@ -36,7 +36,7 @@ export async function GET() {
       .eq('season', season.start)
       .order('points', { ascending: false })
       .order('wins', { ascending: false })
-      .limit(10);
+      .limit(30);
 
     if (error) {
       console.error('Error fetching weekly leaderboard:', error);
