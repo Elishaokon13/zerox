@@ -1,0 +1,227 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAccount } from 'wagmi';
+
+interface LootboxItem {
+  id: number;
+  type: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  points_value: number;
+  usage_type: string;
+}
+
+interface LootboxModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onItemReceived: (item: LootboxItem) => void;
+}
+
+const RARITY_COLORS = {
+  common: '#70FF5A',
+  rare: '#4A90E2', 
+  epic: '#9B59B6',
+  legendary: '#F39C12'
+};
+
+const RARITY_GLOW = {
+  common: 'shadow-green-500/50',
+  rare: 'shadow-blue-500/50',
+  epic: 'shadow-purple-500/50', 
+  legendary: 'shadow-orange-500/50'
+};
+
+export function LootboxModal({ isOpen, onClose, onItemReceived }: LootboxModalProps) {
+  const { address } = useAccount();
+  const [isOpening, setIsOpening] = useState(false);
+  const [receivedItem, setReceivedItem] = useState<LootboxItem | null>(null);
+  const [dailyStatus, setDailyStatus] = useState({ earned: 0, limit: 3, remaining: 3, can_open: true });
+
+  // Load daily lootbox status
+  useEffect(() => {
+    if (isOpen && address) {
+      fetchLootboxStatus();
+    }
+  }, [isOpen, address]);
+
+  const fetchLootboxStatus = async () => {
+    try {
+      const response = await fetch(`/api/lootbox?address=${address}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDailyStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch lootbox status:', error);
+    }
+  };
+
+  const openLootbox = async () => {
+    if (!address || !dailyStatus.can_open) return;
+
+    setIsOpening(true);
+    setReceivedItem(null);
+
+    try {
+      const response = await fetch('/api/lootbox', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setReceivedItem(data.item);
+        onItemReceived(data.item);
+        
+        // Update daily status
+        setDailyStatus(prev => ({
+          ...prev,
+          earned: data.daily_earned,
+          remaining: data.daily_limit - data.daily_earned,
+          can_open: data.daily_earned < data.daily_limit
+        }));
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to open lootbox');
+      }
+    } catch (error) {
+      console.error('Failed to open lootbox:', error);
+      alert('Failed to open lootbox');
+    } finally {
+      setIsOpening(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          className="bg-white rounded-2xl p-6 max-w-md w-full text-center relative overflow-hidden"
+        >
+          {/* Header */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-black mb-2">🎁 Daily Lootbox</h2>
+            <p className="text-gray-600 text-sm">
+              {dailyStatus.remaining > 0 
+                ? `${dailyStatus.remaining} lootbox${dailyStatus.remaining > 1 ? 'es' : ''} remaining today`
+                : 'No lootboxes remaining today'
+              }
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div 
+                className="bg-[#70FF5A] h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(dailyStatus.earned / dailyStatus.limit) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Lootbox Opening Animation */}
+          <div className="mb-6">
+            {isOpening ? (
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="w-32 h-32 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-6xl shadow-2xl"
+              >
+                🎁
+              </motion.div>
+            ) : receivedItem ? (
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className={`w-32 h-32 mx-auto rounded-2xl flex items-center justify-center text-6xl shadow-2xl ${RARITY_GLOW[receivedItem.rarity]}`}
+                style={{ 
+                  backgroundColor: RARITY_COLORS[receivedItem.rarity],
+                  boxShadow: `0 0 30px ${RARITY_COLORS[receivedItem.rarity]}50`
+                }}
+              >
+                {receivedItem.type === 'points' && '💰'}
+                {receivedItem.type === 'try_again' && '🔄'}
+                {receivedItem.type === 'help' && '🤖'}
+                {receivedItem.type === 'undo_step' && '↩️'}
+                {receivedItem.type === 'extra_life' && '❤️'}
+                {receivedItem.type === 'streak_recovery' && '🔥'}
+                {receivedItem.type === 'double_points' && '⚡'}
+              </motion.div>
+            ) : (
+              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-6xl shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                   onClick={openLootbox}>
+                🎁
+              </div>
+            )}
+          </div>
+
+          {/* Item Details */}
+          {receivedItem && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-lg"
+              style={{ 
+                backgroundColor: `${RARITY_COLORS[receivedItem.rarity]}20`,
+                border: `2px solid ${RARITY_COLORS[receivedItem.rarity]}`
+              }}
+            >
+              <h3 className="text-xl font-bold mb-2" style={{ color: RARITY_COLORS[receivedItem.rarity] }}>
+                {receivedItem.name}
+              </h3>
+              <p className="text-gray-700 text-sm mb-2">{receivedItem.description}</p>
+              <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: RARITY_COLORS[receivedItem.rarity] }}>
+                {receivedItem.rarity}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 justify-center">
+            {!receivedItem && !isOpening && (
+              <button
+                onClick={openLootbox}
+                disabled={!dailyStatus.can_open}
+                className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                  dailyStatus.can_open
+                    ? 'bg-[#70FF5A] text-black hover:bg-[#60E54A] hover:scale-105'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {dailyStatus.can_open ? 'Open Lootbox' : 'No Lootboxes Left'}
+              </button>
+            )}
+            
+            {(receivedItem || !dailyStatus.can_open) && (
+              <button
+                onClick={onClose}
+                className="px-6 py-3 rounded-lg font-bold bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
+            )}
+          </div>
+
+          {/* Daily Progress */}
+          <div className="mt-4 text-xs text-gray-500">
+            {dailyStatus.earned}/{dailyStatus.limit} lootboxes opened today
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
