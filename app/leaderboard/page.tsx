@@ -22,11 +22,14 @@ type TabType = 'weekly' | 'alltime' | 'onchain';
 
 function LeaderboardTab() {
   const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [season, setSeason] = React.useState<{ start: string; end: string } | null>(null);
   const [rows, setRows] = React.useState<Array<TopRow>>([]);
   const [countdown, setCountdown] = React.useState<string>('');
   const [activeTab, setActiveTab] = React.useState<TabType>('weekly');
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(true);
   const viewProfile = useViewProfile();
   const { address } = useAccount();
   const { score: onchainScore, isRecording } = useScoreboard();
