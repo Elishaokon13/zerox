@@ -279,6 +279,27 @@ function LeaderboardTab() {
               </div>
             );
           })}
+          
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-6 py-3 rounded-lg bg-[#70FF5A] text-black font-semibold hover:bg-[#60E54A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
+          
+          {/* Loading More Indicator */}
+          {loadingMore && (
+            <div className="mt-4 text-center">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#70FF5A]"></div>
+              <div className="text-sm text-[#9CA3AF] mt-2">Loading more entries...</div>
+            </div>
+          )}
         </div>
       )}
 
