@@ -74,7 +74,7 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, isAutoPopup, address, dailyStatus.can_open]);
+  }, [isOpen, isAutoPopup, address, dailyStatus.can_open, openLootbox]);
 
   const fetchLootboxStatus = async () => {
     try {
