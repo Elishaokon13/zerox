@@ -82,17 +82,17 @@ export async function POST(req: NextRequest) {
     // Get random item
     const selectedItem = getRandomLootboxItem(items);
 
-    // Add item to user inventory
-    const { error: inventoryError } = await supabase
-      .from('user_inventory')
-      .upsert({
-        address: addr,
-        item_id: selectedItem.id,
-        quantity: 1,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      }, {
-        onConflict: 'address,item_id'
-      });
+            // Add item to user inventory
+            const { error: inventoryError } = await supabaseAdmin
+              .from('user_inventory')
+              .upsert({
+                address: addr,
+                item_id: selectedItem.id,
+                quantity: 1,
+                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+              }, {
+                onConflict: 'address,item_id'
+              });
 
     if (inventoryError) {
       return NextResponse.json({ error: 'Failed to add item to inventory' }, { status: 500 });
