@@ -123,10 +123,17 @@ export async function GET(req: NextRequest) {
     const totalReferrals = referrals?.length || 0;
     const totalPoints = totalReferrals * 2;
 
+    // Generate referral code and link
+    const referralCode = address.toLowerCase().slice(2, 8).toUpperCase(); // First 6 chars of address
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+    const referralLink = `${baseUrl}/play?ref=${referralCode}`;
+
     return NextResponse.json({
       address: address.toLowerCase(),
       totalReferrals,
       totalPoints,
+      referralCode,
+      referralLink,
       referrals: referrals || []
     });
 
