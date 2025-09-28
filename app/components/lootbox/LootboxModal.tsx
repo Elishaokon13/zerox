@@ -105,6 +105,10 @@ export function LootboxModal({ isOpen, onClose, onItemReceived, showToast, isAut
         setReceivedItem(data.item);
         onItemReceived(data.item);
         
+        // Trigger confetti celebration
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+        
         // Update daily status
         setDailyStatus(prev => ({
           ...prev,
