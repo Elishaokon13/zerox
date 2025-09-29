@@ -46,6 +46,17 @@ export default function ReferralsPage() {
     fetchReferralStats();
   }, [address, fetchReferralStats]);
 
+  // Auto-refresh referral stats every 10 seconds when page is visible
+  useEffect(() => {
+    if (!address) return;
+
+    const interval = setInterval(() => {
+      fetchReferralStats();
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [address, fetchReferralStats]);
+
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (message: string) => {
     setToast(message);
