@@ -61,7 +61,7 @@ export default function ReferralsPage() {
     if (!address) return;
 
     const interval = setInterval(() => {
-      fetchReferralStats();
+      fetchReferralStats(true); // Pass true to indicate this is an auto-refresh
     }, 10000); // Refresh every 10 seconds
 
     return () => clearInterval(interval);
