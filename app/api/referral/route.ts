@@ -100,13 +100,33 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const address = searchParams.get('address');
-
-    if (!address) {
-      return NextResponse.json({ error: 'address required' }, { status: 400 });
-    }
+    const code = searchParams.get('code');
 
     if (!supabase) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
+
+    // If code is provided, lookup address by referral code
+    if (code) {
+      // Search for addresses that match this referral code
+      const { data: leaderboardEntries, error } = await supabase
+        .from('leaderboard_entries')
+        .select('address')
+        .ilike('address', `%${code.toLowerCase()}%`)
+        .limit(1);
+
+      if (error || !leaderboardEntries || leaderboardEntries.length === 0) {
+        return NextResponse.json({ error: 'Referral code not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        address: leaderboardEntries[0].address,
+        code: code
+      });
+    }
+
+    if (!address) {
+      return NextResponse.json({ error: 'address required' }, { status: 400 });
     }
 
     // Get referral stats for the address
