@@ -293,26 +293,36 @@ export default function Home() {
   // Handle referral links on page load
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const refAddress = urlParams.get('ref');
+    const refCode = urlParams.get('ref');
     const userAddress = address;
     
-    if (refAddress && userAddress && refAddress.toLowerCase() !== userAddress.toLowerCase()) {
-      // Process referral
-      fetch('/api/referral', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          referrerAddress: refAddress,
-          referredAddress: userAddress
+    if (refCode && userAddress) {
+      // First, lookup the referrer's address from the referral code
+      fetch(`/api/referral?code=${refCode}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.address && data.address.toLowerCase() !== userAddress.toLowerCase()) {
+            // Process referral with the found address
+            return fetch('/api/referral', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                referrerAddress: data.address,
+                referredAddress: userAddress
+              })
+            });
+          }
+          return null;
         })
-      }).then(response => {
-        if (response.ok) {
-          showToast('Welcome! You were referred by a friend!');
-          fetchUserPoints(); // Refresh points display
-        }
-      }).catch(error => {
-        console.error('Referral processing failed:', error);
-      });
+        .then(response => {
+          if (response && response.ok) {
+            showToast('Welcome! You were referred by a friend!');
+            fetchUserPoints(); // Refresh points display
+          }
+        })
+        .catch(error => {
+          console.error('Referral processing failed:', error);
+        });
       
       // Clean up URL
       const newUrl = new URL(window.location.href);
