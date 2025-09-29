@@ -24,10 +24,15 @@ export default function ReferralsPage() {
   // const bottomInset = (context?.client?.safeAreaInsets?.bottom ?? 0);
   // const bottomNavHeight = 64 + bottomInset;
 
-  const fetchReferralStats = useCallback(async () => {
+  const fetchReferralStats = useCallback(async (isAutoRefresh = false) => {
     if (!address) return;
 
-    setLoading(true);
+    if (isAutoRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    
     try {
       const response = await fetch(`/api/referral?address=${address}`);
       if (response.ok) {
@@ -39,7 +44,11 @@ export default function ReferralsPage() {
     } catch (error) {
       console.error('Error fetching referral stats:', error);
     } finally {
-      setLoading(false);
+      if (isAutoRefresh) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   }, [address]);
 
