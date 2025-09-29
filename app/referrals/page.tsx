@@ -18,6 +18,7 @@ export default function ReferralsPage() {
   // const { context } = useMiniKit(); // Not used in this component
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Account for bottom nav height + safe area (not used in this component)
   // const bottomInset = (context?.client?.safeAreaInsets?.bottom ?? 0);
