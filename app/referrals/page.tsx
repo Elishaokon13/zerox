@@ -103,7 +103,12 @@ export default function ReferralsPage() {
         <div className="w-full max-w-md mx-auto pt-10">
           <WalletCheck>
             <div className="px-4">
-              <h1 className="text-4xl font-black text-center mb-8 text-black tracking-wider">REFERRALS</h1>
+              <div className="flex items-center justify-center gap-2 mb-8">
+                <h1 className="text-4xl font-black text-center text-black tracking-wider">REFERRALS</h1>
+                {refreshing && (
+                  <div className="w-4 h-4 border-2 border-[#70FF5A] border-t-transparent rounded-full animate-spin"></div>
+                )}
+              </div>
 
               {loading ? (
                 <div className="space-y-4">
