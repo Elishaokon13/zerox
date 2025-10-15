@@ -106,14 +106,14 @@ export default function Home() {
         const r = await fetch('/api/config');
         const j = await r.json();
         if (j && typeof j.payoutEthStr === 'string' && typeof j.chargeEthStr === 'string') {
-          setConfigText(`Win to receive ~${j.payoutEthStr} ETH. Lose and you pay ~${j.chargeEthStr}.`);
+          setConfigText(`Play Tic-Tac-Toe to earn points! Top 5 players each week win USDC rewards. Each player can earn up to $100 lifetime.`);
         } else {
           const p = process.env.NEXT_PUBLIC_PAYOUT_AMOUNT_ETH || process.env.PAYOUT_AMOUNT_ETH || '0.00002';
-          setConfigText(`Win to receive ~${p} ETH. Lose and you pay ~${p}.`);
+          setConfigText(`Play Tic-Tac-Toe to earn points! Top 5 players each week win USDC rewards. Each player can earn up to $100 lifetime.`);
         }
       } catch {
         const p = process.env.NEXT_PUBLIC_PAYOUT_AMOUNT_ETH || process.env.PAYOUT_AMOUNT_ETH || '0.00002';
-        setConfigText(`Win to receive ~${p} ETH. Lose and you pay ~${p}.`);
+        setConfigText(`Play Tic-Tac-Toe to earn points! Top 5 players each week win USDC rewards. Each player can earn up to $100 lifetime.`);
       }
     };
     load();
