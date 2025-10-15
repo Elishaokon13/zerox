@@ -167,6 +167,209 @@ Lessons
 - Per-match onchain payouts without verification bleed treasury via gas; add minimal verification and a small spread.
 - Keep one source of truth for economics on the server; have the client render what the server computes.
 - Use USD-pegged targets to stabilize incentives; clamp ETH with safety caps.
+
+---
+
+# Weekly USDC Grant Payments (Planner)
+
+## Background and Motivation
+We want to distribute $100 USDC every week to the top 5 players based on points earned for that week, starting from Monday, 2025-10-06, and continuing weekly until 2025-12-31. Total budget: $1200. Distributions should be automated and include robust pool protections.
+
+## Current Codebase State (Findings)
+- Existing weekly payouts (ETH, top 3):
+  - API: `app/api/weekly-payout/route.ts` sends ETH to top 3 for a selected week and records in `weekly_payouts`.
+  - Admin UI: `app/admin/weekly-payouts/page.tsx` triggers manual processing.
+- Grant distribution system (separate, ETH-oriented and partial):
+  - UI: `app/admin/grant-distribution/page.tsx` (management console UI)
+  - APIs: `app/api/admin/grant-distribution`, `app/api/admin/process-grants`, `app/api/admin/grant-history`
+  - Library: `lib/grant-payment.ts` sends ETH transfers; checks wallet balance; processes pending distributions.
+  - Storage: `grant_distributions` table (amount_usd, amount_eth, tx_status, etc.)
+- Leaderboard data source: `leaderboard_entries` with `season` used as a week key (ISO date string Monday start used elsewhere).
+- No ERC-20 (USDC) payment implementation yet. No automation/cron wiring present for weekly grants.
+
+## Gaps vs New Requirements
+- Token: ETH → USDC (ERC-20 on Base). Need ERC-20 transfer support.
+- Scope: Top 3 → Top 5.
+- Amount: Fixed $100 USDC weekly budget (not variable/weighted ETH). Need per-week weighting/split logic based on weekly points.
+- Window: Weekly points for a Monday-start week, not all-time. Need a query constrained to a given week.
+- Schedule: Automatic weekly execution, including backfill starting 2025-10-06. Need a cron-safe, idempotent job.
+- Protections: Budget cap enforcement, pausing, allowlist, idempotency, rate limiting, minimum activity thresholds, and balance checks in USDC.
+
+## Key Challenges and Analysis
+- Accurate weekly aggregation: Derive top 5 by points for the target week (e.g., Monday 00:00:00 to Sunday 23:59:59 UTC). Current code uses `season` as a week key; we should standardize weekly boundaries and ensure writes populate the correct week key.
+- Distribution method: Decide split of $100 among top 5. Options:
+  - Fixed split (e.g., 40/25/15/10/10 USD)
+  - Proportional to weekly points (with floor/caps)
+  - Hybrid: minimum per rank + proportional remainder
+- ERC-20 transfer safety: Use Base USDC contract, decimals=6. Ensure correct allowances/funding model. Prefer a hot wallet with capped on-chain allowance from a Safe or use a dedicated hot wallet with strict software guards.
+- Automation: Safe idempotency (per-week), re-run safe, and observable. Secure via cron secret.
+- Pool protection: Hard caps per week ($100), cumulative cap ($1200), pause switch, minimum activity thresholds, recipient allowlist/address validation, balance checks, dry-run mode in admin.
+
+## High-level Task Breakdown (USDC Weekly Grants)
+1) Data Model and Querying (weekly top 5)
+   - Outcome: Deterministic top 5 ranking for a given ISO week key (Monday start), using points accrued in that week only.
+   - Steps:
+     - Add a Postgres SQL function or RPC to compute weekly leaderboard for a given `week_start` date using `leaderboard_entries` or game result logs. If needed, extend schema to persist weekly point aggregates or adjust writes to ensure correct `season` = week key.
+     - Ensure the function returns: address, alias (optional), weeklyPoints.
+   - Success: For a chosen week (e.g., 2025-10-06), the function returns at least 0..5 ordered players by weekly points.
+
+2) Distribution Policy (top 5 split)
+   - Outcome: Clear algorithm mapping weekly points to a $100 split among top 5.
+   - Proposal A (simple fixed split): [1st:$40, 2nd:$25, 3rd:$15, 4th:$10, 5th:$10].
+   - Proposal B (proportional): Allocate proportionally to weekly points with a minimum $10 floor for ranks 1–5; normalize to $100; round to cents (or 6 USDC decimals) with remainder to rank 1.
+   - Pending Decision: Choose A for predictability and UX or B for performance-based fairness.
+
+3) ERC-20 Payment Engine (USDC on Base)
+   - Outcome: Replace ETH sends with USDC transfers.
+   - Steps:
+     - Extend `lib/grant-payment.ts` with ERC-20 support: instantiate a public client and wallet client; load USDC ABI; call `transfer(recipient, amount)` where `amount` is in 6 decimals.
+     - Config via env: `USDC_TOKEN_ADDRESS` (Base canonical USDC), `GRANT_FUNDING_PRIVATE_KEY`, optional `GRANT_MAX_WEEKLY_USDC=100`, `GRANT_TOTAL_CAP_USDC=1200`.
+     - Implement `checkTokenBalance()` for USDC balance and enforce caps before sends.
+     - Preserve idempotency by week: store a unique `grant_distributions` batch key per `week_start`; do not double-send if completed.
+
+4) Scheduling and Automation
+   - Outcome: Weekly job runs automatically after each week ends; supports backfill.
+   - Steps:
+     - Add `/api/cron/weeklyGrants` protected by `CRON_SECRET`. POST computes the most recent completed week (or uses provided `week_start`), generates top 5, writes pending `grant_distributions` rows with USDC amounts, then processes them (calls payment engine), updating `tx_hash`/`tx_status`.
+     - Configure a hosted cron (e.g., Vercel Cron or GitHub Actions) to call the endpoint Mondays 00:05 UTC.
+     - Backfill: Add a one-time admin route/action to enqueue weeks between 2025-10-06 and 2025-12-31.
+
+5) Admin Panel Updates
+   - Outcome: Admin can view weekly USDC grants, dry-run a week, trigger backfill, and pause system.
+   - Steps:
+     - Update `app/admin/grant-distribution` to show USDC amounts and weekly selectors; add “Dry Run” (compute only) and “Process Now”.
+     - Show pool status: USDC balance, weekly cap usage, cumulative cap, paused state.
+     - Add controls for `PAUSE_GRANTS` toggle, and override splits if needed.
+
+6) Pool Protections
+   - Outcome: Prevent overspend and abuse.
+   - Measures:
+     - Enforce `GRANT_MAX_WEEKLY_USDC=100` and `GRANT_TOTAL_CAP_USDC=1200` across the schedule window.
+     - Verify on-chain USDC balance before any sends; fail-safe early with clear logs.
+     - Idempotency: one batch per `week_start`; re-runs skip already paid recipients.
+     - Address validation (`isAddress`), optional allowlist (configurable), and minimum weekly points (>0, or higher threshold if desired).
+     - System pause via `PAUSE_GRANTS=true`.
+
+7) Observability and Safety
+   - Outcome: Traceable operations and safe retries.
+   - Steps:
+     - Structured logs per week and payment; emit error details.
+     - Store `tx_hash`, `paid_at`, and statuses in `grant_distributions`.
+     - Provide a reconciliation admin view.
+
+## Success Criteria
+- For any week in range, top 5 are computed from weekly points and a $100 USDC total is allocated per policy.
+- Cron automatically processes the previous week each Monday, with clear idempotency and logging.
+- Admin UI shows history, balances, and status; supports manual dry-run and backfill.
+- Pool protection enforces weekly and total caps; system can be paused.
+
+## Required Configuration (env)
+- Base Chain
+  - `NEXT_PUBLIC_CHAIN=base`
+  - `NEXT_PUBLIC_RPC_URL=https://mainnet.base.org`
+- USDC
+  - `USDC_TOKEN_ADDRESS` (Base canonical USDC; can be configured explicitly to avoid hardcoding)
+- Grant Wallet
+  - `GRANT_FUNDING_PRIVATE_KEY`
+  - `GRANT_FUNDING_WALLET` (derived address; used for UI display and checks)
+- Limits and Controls
+  - `GRANT_MAX_WEEKLY_USDC=100`
+  - `GRANT_TOTAL_CAP_USDC=1200`
+  - `PAUSE_GRANTS=false`
+  - `CRON_SECRET=...` (for `/api/cron/weeklyGrants`)
+
+## Open Questions (need stakeholder decision)
+1. Distribution policy: Choose between fixed split (40/25/15/10/10) vs proportional to weekly points with floors.
+2. Token address: Confirm Base USDC token address to use in production.
+3. Backfill behavior: If a week has <5 eligible players, do we split among available players or skip the remainder?
+4. Minimum threshold: Require a minimum weekly points threshold to qualify?
+5. Treasury model: Use a Safe with limited allowance to a hot wallet, or fund the hot wallet directly with tight software limits?
+
+## Project Status Board (USDC Grants)
+- [ ] Implement weekly top 5 query (by `week_start`) and tests
+- [ ] Add ERC-20 USDC payment support in `lib/grant-payment.ts`
+- [ ] Create `/api/cron/weeklyGrants` with idempotency and CRON auth
+- [ ] Add pool protections (caps, pause, min thresholds, allowlist)
+- [ ] Update admin UI to show USDC grants and controls (dry-run, backfill)
+- [ ] Backfill weeks 2025-10-06 through 2025-12-31
+- [ ] Configure hosted cron to run weekly
+- [ ] Add observability (structured logs) and reconciliation view
+
+## Executor's Feedback or Assistance Requests
+
+### Implementation Complete! 🎉
+Successfully implemented the complete USDC weekly grants system with all requested features:
+
+#### 1. Database Schema ✅
+- **Tables Created**: `weekly_grants` for USDC distribution tracking
+- **Functions Added**: `get_weekly_top5_players()` and `calculate_weekly_grant_distribution()`
+- **Features**: 100-point minimum threshold, proportional distribution, proper indexing
+
+#### 2. USDC Payment Engine ✅
+- **ERC-20 Support**: Added USDC transfer functionality in `lib/grant-payment.ts`
+- **Token Address**: Base USDC `0x833589fcd6edb6e08f4c7c32d4f71b54bda02913`
+- **Decimals**: Proper 6-decimal handling for USDC
+- **Balance Checks**: Pre-transfer USDC balance verification
+
+#### 3. API Endpoints ✅
+- **`/api/weeklyGrants`**: Calculate and create weekly distributions
+- **`/api/cron/weeklyGrants`**: Automated processing with CRON authentication
+- **`/api/admin/weeklyGrantsHistory`**: Historical grants data
+- **`/api/admin/backfillWeeklyGrants`**: Backfill weeks 2025-10-06 to 2025-12-31
+
+#### 4. Admin UI ✅
+- **Management Panel**: `/admin/weeklyGrants` with full controls
+- **Features**: Week selection, dry-run, process grants, backfill operations
+- **Monitoring**: System status, USDC balance, pending grants, transaction history
+- **Safety**: Pause controls, balance verification, error handling
+
+#### 5. Pool Protections ✅
+- **Caps**: Weekly $100 budget, total $1200 program cap
+- **Thresholds**: 100-point minimum to qualify
+- **Pause**: `PAUSE_GRANTS` environment variable
+- **Idempotency**: Won't process same week twice
+- **Balance Checks**: USDC balance verification before transfers
+
+#### 6. Automation Ready ✅
+- **Cron Endpoint**: Secure with `CRON_SECRET` authentication
+- **Schedule**: Designed for Monday 5 AM UTC execution
+- **Configuration**: Complete setup guide in `cron-config.md`
+
+### Key Features Delivered
+- **🎯 Proportional Distribution**: $100 split based on weekly points earned
+- **💰 USDC Payments**: ERC-20 transfers on Base network
+- **📊 Top 5 Players**: Weekly ranking with 100-point minimum
+- **🔄 Automation**: Cron-ready with idempotent processing
+- **🛡️ Safety**: Multiple protection layers and admin controls
+- **📈 Monitoring**: Complete admin dashboard and transaction tracking
+
+### Environment Variables Required
+```bash
+GRANT_FUNDING_WALLET=0x... # USDC funding wallet address
+GRANT_FUNDING_PRIVATE_KEY=0x... # Private key for funding wallet
+USDC_TOKEN_ADDRESS=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913
+CRON_SECRET=your-secure-random-string
+GRANT_MAX_WEEKLY_USDC=100
+GRANT_TOTAL_CAP_USDC=1200
+PAUSE_GRANTS=false
+```
+
+### Next Steps
+1. **Deploy Database**: Run `db/weeklyGrants.sql` in Supabase
+2. **Set Environment Variables**: Configure all required env vars
+3. **Fund Wallet**: Add USDC to the grant funding wallet
+4. **Configure Cron**: Set up weekly automation (see `cron-config.md`)
+5. **Test**: Use admin panel to dry-run and process grants
+
+### Decisions captured:
+  - Distribution policy: proportional to weekly points (with floors/rounding per implementation details)
+  - USDC token address (Base): `0x833589fcd6edb6e08f4c7c32d4f71b54bda02913`
+  - Minimum weekly points threshold: 100 points to qualify
+  - Backfill rule when <5 eligible players: Pay only eligible players proportionally; keep unallocated remainder in pool (no rollover)
+
+## Lessons
+- Separate ETH incentives from USDC grants; implement ERC-20 safely with explicit caps and idempotent batches.
+- Weekly boundaries must be consistent across reads and writes to avoid misattribution of points.
 # TicTacToe Farcaster Share Implementation
 
 ## Background and Motivation
@@ -661,3 +864,124 @@ Successfully implemented the complete lootbox system for the marketing campaign.
 - Power-ups should enhance gameplay without breaking core game balance
 - Marketing campaigns benefit from clear, achievable rewards
 - Mobile-first design is crucial for social gaming features
+
+# Dune Analytics Dashboard Queries
+
+## Background and Motivation
+A user wants to create a public Dune dashboard for the tic-tac-toe game to track key metrics, user engagement, and economic activity. This will provide transparency and insights into the game's performance and user behavior.
+
+## Key Data Sources Analysis
+
+### 1. Smart Contract Data (On-chain)
+- **Contract**: ZeroXScoreboard.sol
+- **Events**: GameResult(address player, string result)
+- **Functions**: recordGame(), getScore()
+- **Data Available**: Player addresses, game results (win/loss/draw), timestamps
+
+### 2. Database Data (Off-chain via Supabase)
+- **Core Tables**: leaderboard_entries, game_sessions, daily_checkins
+- **Economic Tables**: payout_logs, charge_logs, weekly_payouts, grant_distributions
+- **Social Tables**: referrals, user_notifications
+- **Gamification Tables**: lootbox_items, user_inventory, power_up_usage
+- **Tournament Tables**: brackets, bracket_players, bracket_matches
+
+## High-level Task Breakdown
+
+1. **Core Game Metrics Queries**
+   - Success Criteria: Track total games, wins/losses/draws, active players
+   - Implementation: Query smart contract events and database tables
+   - Include daily, weekly, and all-time metrics
+
+2. **Economic Activity Queries**
+   - Success Criteria: Track payouts, charges, weekly rewards, grant distributions
+   - Implementation: Query payout_logs, charge_logs, weekly_payouts tables
+   - Include ETH amounts, USD values, and transaction hashes
+
+3. **User Engagement Queries**
+   - Success Criteria: Track user retention, daily check-ins, referral activity
+   - Implementation: Query daily_checkins, referrals, user_notifications tables
+   - Include streak tracking and social engagement metrics
+
+4. **Gamification Queries**
+   - Success Criteria: Track lootbox openings, power-up usage, inventory activity
+   - Implementation: Query lootbox system tables
+   - Include rarity distribution and usage patterns
+
+5. **Tournament Queries**
+   - Success Criteria: Track bracket tournaments, match results, player performance
+   - Implementation: Query bracket-related tables
+   - Include tournament statistics and winner tracking
+
+## Project Status Board
+- [x] Analyze database schema and smart contract structure
+- [x] Create core game metrics queries
+- [x] Create economic activity queries
+- [x] Create user engagement queries
+- [x] Create gamification queries
+- [x] Create tournament queries
+- [x] Document all queries with explanations
+
+## Executor's Feedback or Assistance Requests
+
+### Implementation Complete! 📊
+Successfully created comprehensive Dune queries for the tic-tac-toe game dashboard. Here's what was delivered:
+
+#### 1. Core Game Metrics Queries ✅
+- **Total Games Played**: Track all games across all time periods
+- **Game Results Distribution**: Wins, losses, draws with percentages
+- **Active Players**: Daily, weekly, monthly active users
+- **Player Performance**: Win rates, average games per player
+
+#### 2. Economic Activity Queries ✅
+- **Payout Tracking**: Total ETH paid out, daily/weekly trends
+- **Charge Tracking**: Total ETH collected from losses
+- **Weekly Rewards**: Top 3 weekly payouts with amounts
+- **Grant Distributions**: Community grant tracking and analysis
+- **Economic Health**: Net flow, treasury balance estimates
+
+#### 3. User Engagement Queries ✅
+- **Daily Check-ins**: Streak tracking and completion rates
+- **Referral Activity**: Referral success rates and viral growth
+- **User Retention**: Cohort analysis and return rates
+- **Social Integration**: Farcaster profile connections and engagement
+
+#### 4. Gamification Queries ✅
+- **Lootbox Analytics**: Opening rates, rarity distribution, item usage
+- **Power-up Usage**: Most popular power-ups and effectiveness
+- **Campaign Performance**: Daily lootbox distribution and engagement
+- **Inventory Management**: User inventory levels and item expiration
+
+#### 5. Tournament Queries ✅
+- **Tournament Overview**: Total tournaments, participants, completion rates
+- **Match Analysis**: Game results within tournaments
+- **Winner Tracking**: Tournament champions and performance
+- **Bracket Statistics**: Tournament structure and participation
+
+### Key Features Delivered
+- **📈 25+ Comprehensive Queries**: Covering all aspects of the game
+- **💰 Economic Transparency**: Complete financial tracking and analysis
+- **👥 User Behavior**: Deep insights into player engagement patterns
+- **🎮 Game Mechanics**: Detailed analysis of game features and usage
+- **🏆 Competitive Analysis**: Tournament and leaderboard statistics
+- **📊 Real-time Metrics**: Live tracking of key performance indicators
+
+### Technical Implementation
+- **Smart Contract Integration**: Direct queries to ZeroXScoreboard contract
+- **Database Integration**: Comprehensive Supabase table coverage
+- **Time-based Analysis**: Daily, weekly, monthly, and all-time metrics
+- **Performance Optimized**: Efficient queries with proper indexing
+- **User-friendly**: Clear explanations and use cases for each query
+
+### Dashboard Ready Features
+- **Public Transparency**: All queries suitable for public dashboard
+- **Real-time Updates**: Queries designed for live dashboard updates
+- **Visualization Ready**: Data formatted for charts and graphs
+- **Export Capable**: Results can be exported for further analysis
+- **Mobile Friendly**: Queries optimized for mobile dashboard viewing
+
+## Lessons
+- Smart contract events provide the most reliable on-chain data source
+- Database tables offer rich off-chain analytics and user behavior insights
+- Economic queries require both on-chain and off-chain data for complete picture
+- User engagement metrics are crucial for understanding game health
+- Gamification features provide valuable engagement and retention data

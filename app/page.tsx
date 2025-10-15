@@ -15,9 +15,7 @@ import { useAccount, useSendTransaction, useSendCalls } from 'wagmi';
 import { encodeFunctionData } from 'viem';
 import { useMiniKit, useIsInMiniApp, useViewProfile, useComposeCast } from '@coinbase/onchainkit/minikit';
 import { useScoreboard } from '@/lib/useScoreboard';
-import { LootboxModal } from './components/lootbox/LootboxModal';
-import { InventoryPanel } from './components/lootbox/InventoryPanel';
-import { useAutoLootbox } from '@/lib/useAutoLootbox';
+// Lootbox UI removed from gameplay
 
 
 
@@ -171,25 +169,7 @@ export default function Home() {
   const [userPoints, setUserPoints] = useState<{ gamePoints: number; referralPoints: number; totalPoints: number; totalReferrals: number } | null>(null);
   const [pointsLoading, setPointsLoading] = useState(false);
   
-  // Lootbox state
-  const [showLootboxModal, setShowLootboxModal] = useState(false);
-  const [showInventoryPanel, setShowInventoryPanel] = useState(false);
-  const [activePowerUps, setActivePowerUps] = useState<{
-    doublePoints?: boolean;
-    tryAgain?: boolean;
-    aiHelp?: boolean;
-    undoStep?: boolean;
-    extraLife?: boolean;
-    streakRecovery?: boolean;
-  }>({});
-  
-  // Auto lootbox system
-  const { 
-    shouldShowAutoLootbox, 
-    isChecking, 
-    markLootboxOpened, 
-    dismissAutoLootbox 
-  } = useAutoLootbox();
+  // Lootbox UI/state removed
 
 
   // Load user points when address changes
@@ -215,76 +195,9 @@ export default function Home() {
     }
   }, [address]);
 
-  // Auto show lootbox when eligible
-  useEffect(() => {
-    if (shouldShowAutoLootbox && !isChecking) {
-      setShowLootboxModal(true);
-    }
-  }, [shouldShowAutoLootbox, isChecking]);
+  // Lootbox auto-popup removed
 
-  // Handle power-up usage
-  const handlePowerUpUsage = useCallback(async (item: {
-    inventory_id: number;
-    item_type: string;
-    item_name: string;
-    description: string;
-    rarity: string;
-    points_value: number;
-    usage_type: string;
-  }) => {
-    if (!address) return;
-
-    try {
-      const response = await fetch('/api/power-ups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address,
-          inventory_id: item.inventory_id,
-          power_up_type: item.item_type,
-          game_session_id: sessionId
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        showToast(result.message || 'Power-up activated!');
-        
-        // Handle specific power-up effects
-        if (item.item_type === 'points') {
-          // Refresh points display
-          fetchUserPoints();
-        } else if (item.item_type === 'double_points') {
-          // Set double points multiplier for next game
-          setActivePowerUps(prev => ({ ...prev, doublePoints: true }));
-                } else if (item.item_type === 'try_again') {
-                  // Enable try again for current move
-                  setActivePowerUps(prev => ({ ...prev, tryAgain: true }));
-                  setTryAgainActive(true);
-                  setTryAgainUsed(false);
-                  showToast('Try Again activated! You can undo your last move.');
-        } else if (item.item_type === 'help') {
-          // Enable AI help for current move
-          setActivePowerUps(prev => ({ ...prev, aiHelp: true }));
-        } else if (item.item_type === 'undo_step') {
-          // Enable undo for last move
-          setActivePowerUps(prev => ({ ...prev, undoStep: true }));
-        } else if (item.item_type === 'extra_life') {
-          // Enable extra life for current game
-          setActivePowerUps(prev => ({ ...prev, extraLife: true }));
-        } else if (item.item_type === 'streak_recovery') {
-          // Enable streak recovery
-          setActivePowerUps(prev => ({ ...prev, streakRecovery: true }));
-        }
-      } else {
-        const error = await response.json();
-        showToast(error.error || 'Failed to use power-up');
-      }
-    } catch (error) {
-      console.error('Failed to use power-up:', error);
-      showToast('Failed to use power-up');
-    }
-  }, [address, sessionId, showToast, fetchUserPoints]);
+  // Power-ups from lootbox removed; no runtime hook-in
 
   useEffect(() => {
     fetchUserPoints();
@@ -1031,18 +944,7 @@ export default function Home() {
                 {showSettings ? 'Close Settings' : 'Settings'}
               </button>
               */}
-              <button
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-black text-white font-bold flex-1 sm:flex-none min-w-0"
-                onClick={() => setShowLootboxModal(true)}
-              >
-                🎁 Lootbox
-              </button>
-              <button
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm border bg-[#70FF5A] text-black border-[#70FF5A] flex-1 sm:flex-none min-w-0"
-                onClick={() => setShowInventoryPanel(true)}
-              >
-                ⚡ Power-ups
-              </button>
+              {/* Lootbox and Power-ups UI removed */}
             </div>
             
             {/* Try Again button - only show when power-up is active */}
@@ -1261,45 +1163,6 @@ export default function Home() {
       </WalletCheck>
     </main>
     <BottomNav />
-    
-    
-        {/* Lootbox Modal */}
-        <LootboxModal
-          isOpen={showLootboxModal}
-          onClose={() => {
-            setShowLootboxModal(false);
-            if (shouldShowAutoLootbox) {
-              dismissAutoLootbox();
-            }
-          }}
-          onItemReceived={(item) => {
-            showToast(`You received: ${item.name}!`);
-            // Mark lootbox as opened for auto system
-            if (shouldShowAutoLootbox) {
-              markLootboxOpened();
-            }
-            // Refresh inventory if it's open
-            if (showInventoryPanel) {
-              // Trigger inventory refresh
-            }
-          }}
-          showToast={showToast}
-          isAutoPopup={shouldShowAutoLootbox}
-          onAutoClose={() => {
-            setShowLootboxModal(false);
-            markLootboxOpened();
-          }}
-        />
-    
-    {/* Inventory Panel */}
-    <InventoryPanel
-      isOpen={showInventoryPanel}
-      onClose={() => setShowInventoryPanel(false)}
-      onUseItem={(item) => {
-        // Handle power-up usage
-        handlePowerUpUsage(item);
-      }}
-    />
     </>
   );
 }

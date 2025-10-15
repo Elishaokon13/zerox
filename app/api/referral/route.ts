@@ -145,8 +145,8 @@ export async function GET(req: NextRequest) {
 
     // Generate referral code and link
     const referralCode = address.toLowerCase().slice(2, 8).toUpperCase(); // First 6 chars of address
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
-    const referralLink = `${baseUrl}/play?ref=${referralCode}`;
+    const baseUrl = 'https://farcaster.xyz/miniapps/hBoHi9UcgI9H/zerox';
+    const referralLink = `${baseUrl}?ref=${encodeURIComponent(referralCode)}`;
 
     return NextResponse.json({
       address: address.toLowerCase(),

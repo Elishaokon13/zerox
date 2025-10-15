@@ -49,6 +49,22 @@ export default function WeeklyPayoutsPage() {
     return monday.toISOString().slice(0, 10);
   };
 
+  const getWeekStartFor = (d: Date) => {
+    const dayOfWeek = d.getDay();
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - dayOfWeek + 1);
+    monday.setHours(0, 0, 0, 0);
+    return monday.toISOString().slice(0, 10);
+  };
+
+  const getLastWeekStart = () => {
+    const now = new Date();
+    // Go back 7 days, then compute that week's Monday
+    const lastWeek = new Date(now);
+    lastWeek.setDate(now.getDate() - 7);
+    return getWeekStartFor(lastWeek);
+  };
+
   const handleAuthenticate = async () => {
     if (!farcasterUsername.trim() || !address) {
       alert('Please enter your Farcaster username and ensure wallet is connected');
@@ -221,8 +237,32 @@ export default function WeeklyPayoutsPage() {
 
         {/* Current Week Info */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Week: {currentWeek}</h2>
-          <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Selected Week: {currentWeek}</h2>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentWeek(getLastWeekStart())}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50"
+                title="Select last week"
+              >
+                Last Week
+              </button>
+              <button
+                onClick={() => setCurrentWeek(getCurrentWeekStart())}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50"
+                title="Select current week"
+              >
+                This Week
+              </button>
+              <input
+                type="date"
+                value={currentWeek}
+                onChange={(e) => setCurrentWeek(e.target.value)}
+                className="px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#70FF5A] focus:border-transparent"
+              />
+            </div>
             <button
               onClick={handleProcessPayouts}
               disabled={loading}

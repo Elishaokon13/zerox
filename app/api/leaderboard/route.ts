@@ -24,7 +24,7 @@ export async function GET() {
   const season = seasonStartISO();
   if (!supabase) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
   
-  // Try without the user_notifications join first
+  // Get leaderboard data with lifetime tracking info
   const { data, error } = await supabase
     .from('leaderboard_entries')
     .select(`
@@ -34,7 +34,12 @@ export async function GET() {
       wins,
       draws,
       losses,
-      points
+      points,
+      player_lifetime_tracking!left(
+        lifetime_earned_usdc,
+        is_capped,
+        capped_at
+      )
     `)
     .eq('season', season)
     .order('points', { ascending: false })
@@ -43,17 +48,36 @@ export async function GET() {
     .limit(30);
   
   if (error) return NextResponse.json({ season: { start: season, end: seasonEndISO() }, top: [], totals: { totalPayoutEth: 0, totalChargeEth: 0, totalUsers: 0 } });
-  const top = (data || []).map((r: { address: string; alias?: string | null; pfp_url?: string | null; wins: number; draws: number; losses: number; points: number; }, i: number) => ({ 
-    rank: i + 1, 
-    address: r.address, 
-    alias: r.alias ?? undefined, 
-    pfpUrl: r.pfp_url ?? undefined, 
-    wins: r.wins, 
-    draws: r.draws, 
-    losses: r.losses, 
-    points: r.points,
-    fid: undefined // FID will be undefined for now since we removed the join
-  }));
+  const top = (data || []).map((r: { 
+    address: string; 
+    alias?: string | null; 
+    pfp_url?: string | null; 
+    wins: number; 
+    draws: number; 
+    losses: number; 
+    points: number;
+    player_lifetime_tracking?: {
+      lifetime_earned_usdc: number;
+      is_capped: boolean;
+      capped_at?: string;
+    }[] | null;
+  }, i: number) => {
+    const lifetimeData = r.player_lifetime_tracking?.[0]; // Get first (and only) record
+    return {
+      rank: i + 1, 
+      address: r.address, 
+      alias: r.alias ?? undefined, 
+      pfpUrl: r.pfp_url ?? undefined, 
+      wins: r.wins, 
+      draws: r.draws, 
+      losses: r.losses, 
+      points: r.points,
+      lifetimeEarnedUsdc: lifetimeData?.lifetime_earned_usdc || 0,
+      isCapped: lifetimeData?.is_capped || false,
+      cappedAt: lifetimeData?.capped_at || null,
+      fid: undefined // FID will be undefined for now since we removed the join
+    };
+  });
   // Totals: sum payouts, charges, and total unique users this season
   let totalPayoutEth = 0;
   let totalChargeEth = 0;

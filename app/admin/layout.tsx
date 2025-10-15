@@ -11,9 +11,8 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/grant-distribution', label: 'Grant Distribution', icon: '🎁' },
-    { href: '/admin/notify', label: 'Notifications', icon: '🔔' },
+    { href: '/admin/weeklyGrants', label: 'Weekly Grants', icon: '🎁' },
+    { href: '/admin/weekly-payouts', label: 'Weekly Payouts', icon: '💰' },
   ];
 
   return (
@@ -21,12 +20,12 @@ export default function AdminLayout({
       {/* Admin Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link href="/admin/dashboard" className="text-xl font-bold text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <Link href="/admin/weeklyGrants" className="text-xl font-bold text-gray-900">
                 Admin Panel
               </Link>
-              <div className="flex space-x-6">
+              <div className="flex flex-wrap gap-2">
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
@@ -38,15 +37,16 @@ export default function AdminLayout({
                     }`}
                   >
                     <span>{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="hidden sm:inline">{item.label}</span>
+                    <span className="sm:hidden">{item.label.split(' ')[0]}</span>
                   </Link>
                 ))}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <Link
                 href="/"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
               >
                 ← Back to App
               </Link>
