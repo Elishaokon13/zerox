@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { processUSDCGrantPayments, checkUSDCBalance, isGrantSystemReady, USDCGrantPayment } from '@/lib/grant-payment';
 
 // Use the same week calculation as the leaderboard API (UTC-based)
 function seasonStartISO(): string {
@@ -217,18 +219,88 @@ export async function POST(req: NextRequest) {
       tx_status: 'pending'
     }));
 
+    let insertedRecords: { id: number; recipient_address: string; amount_usdc: number }[] = [];
     try {
-      const { error: insertError } = await supabase
+      const { data: insertedData, error: insertError } = await supabase
         .from('weekly_grants')
-        .insert(grantRecords);
+        .insert(grantRecords)
+        .select('id, recipient_address, amount_usdc');
 
       if (insertError) {
         console.error('Error creating grant records:', insertError);
         return NextResponse.json({ error: 'Failed to create grant records' }, { status: 500 });
       }
+      insertedRecords = insertedData || [];
     } catch {
       console.log('weekly_grants table not found, skipping database insert');
       // Continue without database insert for now
+    }
+
+    // Process USDC payments if system is ready and records were created
+    let paymentResults: { id: number; txHash?: string; error?: string; status: 'success' | 'failed' }[] = [];
+    if (isGrantSystemReady() && insertedRecords.length > 0) {
+      try {
+        // Check USDC balance before processing
+        const balanceInfo = await checkUSDCBalance();
+        const totalRequired = distribution.reduce((sum, player) => sum + player.amount_usdc, 0);
+        
+        if (balanceInfo.balance < BigInt(Math.floor(totalRequired * 1000000))) { // Convert to 6 decimals
+          return NextResponse.json({ 
+            error: `Insufficient USDC balance. Required: ${totalRequired} USDC, Available: ${balanceInfo.balanceUsdc} USDC` 
+          }, { status: 400 });
+        }
+
+        // Prepare payments for processing
+        const payments: USDCGrantPayment[] = insertedRecords.map((record) => ({
+          id: record.id,
+          recipient_address: record.recipient_address,
+          amount_usdc: record.amount_usdc,
+          week_start: weekStart
+        }));
+
+        // Process USDC payments
+        const paymentResult = await processUSDCGrantPayments(payments);
+        paymentResults = paymentResult.results;
+
+        // Update database with transaction hashes
+        if (paymentResult.success) {
+          for (const result of paymentResults) {
+            if (result.status === 'success' && result.txHash) {
+              try {
+                await supabase
+                  .from('weekly_grants')
+                  .update({ 
+                    tx_hash: result.txHash,
+                    tx_status: 'completed',
+                    paid_at: new Date().toISOString()
+                  })
+                  .eq('id', result.id);
+              } catch (updateError) {
+                console.error(`Failed to update transaction hash for record ${result.id}:`, updateError);
+              }
+            } else if (result.status === 'failed') {
+              try {
+                await supabase
+                  .from('weekly_grants')
+                  .update({ 
+                    tx_status: 'failed',
+                    error_message: result.error || 'Payment failed'
+                  })
+                  .eq('id', result.id);
+              } catch (updateError) {
+                console.error(`Failed to update failed status for record ${result.id}:`, updateError);
+              }
+            }
+          }
+        }
+      } catch (paymentError) {
+        console.error('Error processing USDC payments:', paymentError);
+        return NextResponse.json({ 
+          error: `Payment processing failed: ${paymentError instanceof Error ? paymentError.message : 'Unknown error'}` 
+        }, { status: 500 });
+      }
+    } else if (insertedRecords.length > 0) {
+      console.log('Grant system not ready, payments not processed');
     }
 
     // Update lifetime tracking for each player (if table exists)
@@ -273,13 +345,20 @@ export async function POST(req: NextRequest) {
     }
 
     const totalUsdc = distribution.reduce((sum, player) => sum + player.amount_usdc, 0);
+    const successfulPayments = paymentResults.filter(r => r.status === 'success').length;
+    const failedPayments = paymentResults.filter(r => r.status === 'failed').length;
+    
     return NextResponse.json({
-      message: `Weekly grants created for week ${weekStart}`,
+      message: `Weekly grants processed for week ${weekStart}`,
       weekStart,
       distribution,
       eligiblePlayers: eligiblePlayers.length,
       totalUsdc: totalUsdc,
-      recordsCreated: grantRecords.length
+      recordsCreated: grantRecords.length,
+      paymentsProcessed: paymentResults.length > 0,
+      successfulPayments,
+      failedPayments,
+      paymentResults: paymentResults.length > 0 ? paymentResults : undefined
     });
 
   } catch (error) {

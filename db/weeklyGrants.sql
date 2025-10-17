@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS weekly_grants (
   amount_usdc DECIMAL(10,2) NOT NULL DEFAULT 0,
   tx_hash TEXT,
   tx_status TEXT NOT NULL DEFAULT 'pending', -- pending, completed, failed
+  paid_at TIMESTAMP WITH TIME ZONE,
+  error_message TEXT,
   distributed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
