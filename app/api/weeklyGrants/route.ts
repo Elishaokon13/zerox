@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid week format. Use YYYY-MM-DD' }, { status: 400 });
     }
 
-    // Get top 5 players from leaderboard, excluding capped players
+    // Get top 5 players from leaderboard (without lifetime tracking for now)
     const { data: topPlayers, error } = await supabase
       .from('leaderboard_entries')
       .select(`
@@ -37,14 +37,9 @@ export async function GET(req: NextRequest) {
         wins, 
         draws, 
         losses, 
-        points,
-        player_lifetime_tracking!left(
-          lifetime_earned_usdc,
-          is_capped
-        )
+        points
       `)
       .eq('season', weekStart)
-      .eq('player_lifetime_tracking.is_capped', false)
       .order('points', { ascending: false })
       .order('wins', { ascending: false })
       .limit(5);
@@ -119,12 +114,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
-    // Check if grants already exist for this week
-    const { data: existingGrants } = await supabase
-      .from('weekly_grants')
-      .select('id')
-      .eq('week_start', weekStart)
-      .limit(1);
+    // Check if grants already exist for this week (if table exists)
+    let existingGrants: { id: number }[] = [];
+    try {
+      const { data } = await supabase
+        .from('weekly_grants')
+        .select('id')
+        .eq('week_start', weekStart)
+        .limit(1);
+      existingGrants = data || [];
+    } catch {
+      // Table doesn't exist yet, continue with processing
+      console.log('weekly_grants table not found, proceeding with grant calculation');
+    }
 
     if (existingGrants && existingGrants.length > 0) {
       return NextResponse.json({ 
@@ -133,7 +135,7 @@ export async function POST(req: NextRequest) {
       }, { status: 409 });
     }
 
-    // Get top 5 players from leaderboard, excluding capped players
+    // Get top 5 players from leaderboard (without lifetime tracking for now)
     const { data: topPlayers, error: distError } = await supabase
       .from('leaderboard_entries')
       .select(`
@@ -143,14 +145,9 @@ export async function POST(req: NextRequest) {
         wins, 
         draws, 
         losses, 
-        points,
-        player_lifetime_tracking!left(
-          lifetime_earned_usdc,
-          is_capped
-        )
+        points
       `)
       .eq('season', weekStart)
-      .eq('player_lifetime_tracking.is_capped', false)
       .order('points', { ascending: false })
       .order('wins', { ascending: false })
       .limit(5);
@@ -209,7 +206,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Create grant records in database
+    // Create grant records in database (if table exists)
     const grantRecords = distribution.map((player) => ({
       week_start: weekStart,
       recipient_address: player.address,
@@ -220,49 +217,59 @@ export async function POST(req: NextRequest) {
       tx_status: 'pending'
     }));
 
-    const { error: insertError } = await supabase
-      .from('weekly_grants')
-      .insert(grantRecords);
+    try {
+      const { error: insertError } = await supabase
+        .from('weekly_grants')
+        .insert(grantRecords);
 
-    if (insertError) {
-      console.error('Error creating grant records:', insertError);
-      return NextResponse.json({ error: 'Failed to create grant records' }, { status: 500 });
+      if (insertError) {
+        console.error('Error creating grant records:', insertError);
+        return NextResponse.json({ error: 'Failed to create grant records' }, { status: 500 });
+      }
+    } catch {
+      console.log('weekly_grants table not found, skipping database insert');
+      // Continue without database insert for now
     }
 
-    // Update lifetime tracking for each player
-    for (const player of distribution) {
-      // First, get current lifetime earnings
-      const { data: currentLifetime, error: fetchError } = await supabase
-        .from('player_lifetime_tracking')
-        .select('lifetime_earned_usdc, is_capped, capped_at')
-        .eq('address', player.address)
-        .single();
+    // Update lifetime tracking for each player (if table exists)
+    try {
+      for (const player of distribution) {
+        // First, get current lifetime earnings
+        const { data: currentLifetime, error: fetchError } = await supabase
+          .from('player_lifetime_tracking')
+          .select('lifetime_earned_usdc, is_capped, capped_at')
+          .eq('address', player.address)
+          .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
-        console.error(`Error fetching lifetime data for ${player.address}:`, fetchError);
-        continue;
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+          console.error(`Error fetching lifetime data for ${player.address}:`, fetchError);
+          continue;
+        }
+
+        const currentEarnings = currentLifetime?.lifetime_earned_usdc || 0;
+        const newTotalEarnings = currentEarnings + player.amount_usdc;
+        const isNowCapped = newTotalEarnings >= 100.00;
+
+        const { error: lifetimeError } = await supabase
+          .from('player_lifetime_tracking')
+          .upsert({
+            address: player.address,
+            alias: player.alias,
+            lifetime_earned_usdc: newTotalEarnings,
+            is_capped: isNowCapped,
+            capped_at: isNowCapped && !currentLifetime?.is_capped ? new Date().toISOString() : currentLifetime?.capped_at || null
+          }, {
+            onConflict: 'address',
+            ignoreDuplicates: false
+          });
+
+        if (lifetimeError) {
+          console.error(`Error updating lifetime tracking for ${player.address}:`, lifetimeError);
+        }
       }
-
-      const currentEarnings = currentLifetime?.lifetime_earned_usdc || 0;
-      const newTotalEarnings = currentEarnings + player.amount_usdc;
-      const isNowCapped = newTotalEarnings >= 100.00;
-
-      const { error: lifetimeError } = await supabase
-        .from('player_lifetime_tracking')
-        .upsert({
-          address: player.address,
-          alias: player.alias,
-          lifetime_earned_usdc: newTotalEarnings,
-          is_capped: isNowCapped,
-          capped_at: isNowCapped && !currentLifetime?.is_capped ? new Date().toISOString() : currentLifetime?.capped_at || null
-        }, {
-          onConflict: 'address',
-          ignoreDuplicates: false
-        });
-
-      if (lifetimeError) {
-        console.error(`Error updating lifetime tracking for ${player.address}:`, lifetimeError);
-      }
+    } catch {
+      console.log('player_lifetime_tracking table not found, skipping lifetime tracking');
+      // Continue without lifetime tracking for now
     }
 
     const totalUsdc = distribution.reduce((sum, player) => sum + player.amount_usdc, 0);

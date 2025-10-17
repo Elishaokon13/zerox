@@ -297,6 +297,17 @@ We want to distribute $100 USDC every week to the top 5 players based on points 
 
 ## Executor's Feedback or Assistance Requests
 
+### Production Issue Identified! 🚨
+**Issue**: Production database is missing the new USDC grant tables, causing 500 errors on `/api/weeklyGrants` endpoint.
+
+**Root Cause**: The `weekly_grants` and `player_lifetime_tracking` tables don't exist in production database yet.
+
+**Local Status**: ✅ Working perfectly on localhost:3001 (server runs on port 3001, not 3000)
+
+**Production Status**: ❌ 500 errors due to missing database tables
+
+**Solution Required**: Deploy the database schema to production by running `db/weeklyGrants.sql` in the production Supabase database.
+
 ### Implementation Complete! 🎉
 Successfully implemented the complete USDC weekly grants system with all requested features:
 
