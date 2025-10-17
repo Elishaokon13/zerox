@@ -79,6 +79,50 @@ export async function GET() {
       console.error('Error fetching weekly payouts:', weeklyPayoutError);
     }
 
+    // Get USDC grants data
+    let totalUsdcGrants = 0;
+    let currentWeekUsdcGrants = 0;
+    let totalUsdcGrantRecipients = 0;
+    let currentWeekUsdcGrantRecipients = 0;
+
+    try {
+      // Get all USDC grants
+      const { data: allUsdcGrants, error: usdcGrantsError } = await supabase
+        .from('weekly_grants')
+        .select('amount_usdc, week_start, tx_status, address');
+
+      if (!usdcGrantsError && allUsdcGrants) {
+        // Calculate total USDC grants (only completed transactions)
+        totalUsdcGrants = allUsdcGrants
+          .filter(grant => grant.tx_status === 'completed')
+          .reduce((sum, grant) => sum + (Number(grant.amount_usdc) || 0), 0);
+
+        // Calculate current week USDC grants
+        currentWeekUsdcGrants = allUsdcGrants
+          .filter(grant => grant.week_start === currentWeek && grant.tx_status === 'completed')
+          .reduce((sum, grant) => sum + (Number(grant.amount_usdc) || 0), 0);
+
+        // Count unique recipients (by address, not week)
+        const uniqueRecipients = new Set(
+          allUsdcGrants
+            .filter(grant => grant.tx_status === 'completed')
+            .map(grant => grant.address)
+        );
+        totalUsdcGrantRecipients = uniqueRecipients.size;
+
+        // Count current week recipients (by address)
+        const currentWeekRecipients = new Set(
+          allUsdcGrants
+            .filter(grant => grant.week_start === currentWeek && grant.tx_status === 'completed')
+            .map(grant => grant.address)
+        );
+        currentWeekUsdcGrantRecipients = currentWeekRecipients.size;
+      }
+    } catch (error) {
+      console.error('Error fetching USDC grants data:', error);
+      // Continue without USDC data if table doesn't exist
+    }
+
     // Calculate metrics
     const totalPoints = allTimeData?.reduce((sum: number, player: { points: number }) => sum + (Number(player.points) || 0), 0) || 0;
     const totalPlayers = uniquePlayers?.length || 0; // Use actual unique players count
@@ -116,6 +160,11 @@ export async function GET() {
       weeklyActiveUsers,
       allTimeActiveUsers: totalPlayers,
       currentWeekPayouts,
+      // USDC Grant metrics
+      totalUsdcGrants,
+      currentWeekUsdcGrants,
+      totalUsdcGrantRecipients,
+      currentWeekUsdcGrantRecipients,
       recentActivity
     });
 

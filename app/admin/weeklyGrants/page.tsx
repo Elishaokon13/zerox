@@ -121,10 +121,27 @@ export default function WeeklyGrantsPage() {
         body: JSON.stringify({ weekStart: currentWeek, dryRun })
       });
       
-      const data = await res.json();
+      let data;
+      let responseText;
+      
+      try {
+        responseText = await res.text();
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('Failed to parse API response:', jsonError);
+        console.error('Raw response:', responseText);
+        throw new Error(`API returned invalid JSON (Status: ${res.status}): ${responseText?.substring(0, 200)}`);
+      }
       
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to process grants');
+        const errorMessage = data?.error || `API Error (Status: ${res.status})`;
+        console.error('API Error:', { 
+          status: res.status, 
+          statusText: res.statusText,
+          error: data,
+          responseText: responseText
+        });
+        throw new Error(errorMessage);
       }
       
       if (dryRun) {
@@ -135,7 +152,18 @@ export default function WeeklyGrantsPage() {
       }
     } catch (err) {
       console.error('Failed to process grants:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process grants');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process grants';
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('Failed to create grant records')) {
+        setError('Database access denied. Please check RLS policies in Supabase. Run the fix-rls-policies.sql script.');
+      } else if (errorMessage.includes('Insufficient USDC balance')) {
+        setError('Insufficient USDC balance in grant wallet. Please fund the wallet.');
+      } else if (errorMessage.includes('Grant system not ready')) {
+        setError('USDC payment system not configured. Please set environment variables.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setProcessing(false);
     }

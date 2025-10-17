@@ -10,6 +10,11 @@ interface DashboardMetrics {
   weeklyActiveUsers: number;
   allTimeActiveUsers: number;
   currentWeekPayouts: number;
+  // USDC Grant metrics
+  totalUsdcGrants: number;
+  currentWeekUsdcGrants: number;
+  totalUsdcGrantRecipients: number;
+  currentWeekUsdcGrantRecipients: number;
   topPlayers: Array<{
     rank: number;
     address: string;
@@ -102,6 +107,11 @@ export default function AdminDashboardPage() {
         weeklyActiveUsers: metricsData.weeklyActiveUsers,
         allTimeActiveUsers: metricsData.allTimeActiveUsers,
         currentWeekPayouts: metricsData.currentWeekPayouts,
+        // USDC Grant metrics
+        totalUsdcGrants: metricsData.totalUsdcGrants || 0,
+        currentWeekUsdcGrants: metricsData.currentWeekUsdcGrants || 0,
+        totalUsdcGrantRecipients: metricsData.totalUsdcGrantRecipients || 0,
+        currentWeekUsdcGrantRecipients: metricsData.currentWeekUsdcGrantRecipients || 0,
         topPlayers,
         recentActivity: metricsData.recentActivity
       });
@@ -129,6 +139,13 @@ export default function AdminDashboardPage() {
     if (usdValue < 1) return `$${usdValue.toFixed(4)}`;
     if (usdValue < 100) return `$${usdValue.toFixed(2)}`;
     return `$${usdValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  };
+
+  const formatUSDC = (usdc: number) => {
+    if (usdc === 0) return '$0.00';
+    if (usdc < 1) return `$${usdc.toFixed(2)}`;
+    if (usdc < 100) return `$${usdc.toFixed(2)}`;
+    return `$${usdc.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   };
 
   const formatLargeNumber = (num: number) => {
@@ -271,7 +288,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -329,6 +346,36 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total USDC Grants</p>
+                <p className="text-2xl font-bold text-gray-900">{formatUSDC(metrics?.totalUsdcGrants || 0)}</p>
+                <p className="text-xs text-gray-500">{metrics?.totalUsdcGrantRecipients || 0} recipients</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">This Week USDC</p>
+                <p className="text-2xl font-bold text-gray-900">{formatUSDC(metrics?.currentWeekUsdcGrants || 0)}</p>
+                <p className="text-xs text-gray-500">{metrics?.currentWeekUsdcGrantRecipients || 0} recipients</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Additional Metrics */}
@@ -360,7 +407,7 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Net Revenue</span>
+                <span className="text-gray-600">Net Revenue (ETH)</span>
                 <div className="text-right">
                   <div className={`font-semibold ${(metrics?.totalCharges || 0) - (metrics?.totalPayouts || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatUSD((metrics?.totalCharges || 0) - (metrics?.totalPayouts || 0))}
@@ -371,7 +418,18 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Total Volume</span>
+                <span className="text-gray-600">Total USDC Distributed</span>
+                <div className="text-right">
+                  <div className="font-semibold text-purple-600">
+                    {formatUSDC(metrics?.totalUsdcGrants || 0)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {metrics?.totalUsdcGrantRecipients || 0} recipients
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Volume (ETH)</span>
                 <div className="text-right">
                   <div className="font-semibold text-[#70FF5A]">
                     {formatUSD((metrics?.totalPayouts || 0) + (metrics?.totalCharges || 0))}
@@ -382,13 +440,13 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Avg Payout per Player</span>
+                <span className="text-gray-600">Avg USDC per Recipient</span>
                 <div className="text-right">
-                  <div className="font-semibold text-[#70FF5A]">
-                    {metrics?.totalPlayers ? formatUSD((metrics?.totalPayouts || 0) / metrics.totalPlayers) : '$0.00'}
+                  <div className="font-semibold text-purple-600">
+                    {metrics?.totalUsdcGrantRecipients ? formatUSDC((metrics?.totalUsdcGrants || 0) / metrics.totalUsdcGrantRecipients) : '$0.00'}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {metrics?.totalPlayers ? formatETH((metrics?.totalPayouts || 0) / metrics.totalPlayers) : '0 ETH'}
+                    {metrics?.totalUsdcGrantRecipients || 0} total recipients
                   </div>
                 </div>
               </div>
@@ -399,20 +457,20 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <a
-                href="/admin/grant-distribution"
-                className="block w-full px-4 py-2 bg-[#70FF5A] text-black text-center rounded-md hover:bg-[#5FE04A] transition-colors"
+                href="/admin/weeklyGrants"
+                className="block w-full px-4 py-2 bg-purple-500 text-white text-center rounded-md hover:bg-purple-600 transition-colors"
               >
-                Manage Grant Distribution
+                USDC Weekly Grants
               </a>
               <a
                 href="/admin/weekly-payouts"
-                className="block w-full px-4 py-2 bg-purple-500 text-white text-center rounded-md hover:bg-purple-600 transition-colors"
+                className="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded-md hover:bg-blue-600 transition-colors"
               >
-                Weekly Payouts
+                ETH Weekly Payouts
               </a>
               <a
                 href="/admin/notify"
-                className="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded-md hover:bg-blue-600 transition-colors"
+                className="block w-full px-4 py-2 bg-green-500 text-white text-center rounded-md hover:bg-green-600 transition-colors"
               >
                 Send Notifications
               </a>

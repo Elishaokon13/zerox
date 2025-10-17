@@ -211,20 +211,21 @@ export async function POST(req: NextRequest) {
     // Create grant records in database (if table exists)
     const grantRecords = distribution.map((player) => ({
       week_start: weekStart,
-      recipient_address: player.address,
-      recipient_alias: player.alias,
-      points: player.weekly_points,
+      rank: player.rank,
+      address: player.address,
+      alias: player.alias,
+      weekly_points: player.weekly_points,
       percentage: player.percentage,
       amount_usdc: player.amount_usdc,
       tx_status: 'pending'
     }));
 
-    let insertedRecords: { id: number; recipient_address: string; amount_usdc: number }[] = [];
+    let insertedRecords: { id: number; address: string; amount_usdc: number }[] = [];
     try {
       const { data: insertedData, error: insertError } = await supabase
         .from('weekly_grants')
         .insert(grantRecords)
-        .select('id, recipient_address, amount_usdc');
+        .select('id, address, amount_usdc');
 
       if (insertError) {
         console.error('Error creating grant records:', insertError);
@@ -253,7 +254,7 @@ export async function POST(req: NextRequest) {
         // Prepare payments for processing
         const payments: USDCGrantPayment[] = insertedRecords.map((record) => ({
           id: record.id,
-          recipient_address: record.recipient_address,
+          recipient_address: record.address,
           amount_usdc: record.amount_usdc,
           week_start: weekStart
         }));

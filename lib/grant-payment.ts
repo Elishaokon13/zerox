@@ -201,38 +201,106 @@ export async function processUSDCGrantPayments(payments: USDCGrantPayment[]): Pr
   }
 
   const results = [];
+  let currentNonce: number | null = null;
+
+  // Get initial nonce
+  try {
+    currentNonce = await publicClient.getTransactionCount({
+      address: walletClient.account.address,
+      blockTag: 'pending'
+    });
+    console.log(`Starting with nonce: ${currentNonce}`);
+  } catch (error) {
+    console.error('Failed to get initial nonce:', error);
+    throw new Error('Failed to get wallet nonce');
+  }
 
   for (const payment of payments) {
-    try {
-      // Convert USDC amount to wei (6 decimals)
-      const amountWei = parseUnits(payment.amount_usdc.toString(), USDC_DECIMALS);
+    let success = false;
+    let txHash: string | undefined;
+    let error: string | undefined;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-      // Send USDC transfer transaction
-      const txHash = await walletClient.writeContract({
-        address: USDC_TOKEN_ADDRESS as `0x${string}`,
-        abi: USDC_ABI,
-        functionName: 'transfer',
-        args: [
-          payment.recipient_address as `0x${string}`,
-          amountWei
-        ]
-      });
+    while (!success && retryCount < maxRetries) {
+      try {
+        // Convert USDC amount to wei (6 decimals)
+        const amountWei = parseUnits(payment.amount_usdc.toString(), USDC_DECIMALS);
 
+        // Send USDC transfer transaction with current nonce
+        txHash = await walletClient.writeContract({
+          address: USDC_TOKEN_ADDRESS as `0x${string}`,
+          abi: USDC_ABI,
+          functionName: 'transfer',
+          args: [
+            payment.recipient_address as `0x${string}`,
+            amountWei
+          ],
+          nonce: currentNonce
+        });
+
+        // Wait for transaction confirmation
+        console.log(`Waiting for confirmation of TX: ${txHash}`);
+        await publicClient.waitForTransactionReceipt({ 
+          hash: txHash as `0x${string}`,
+          timeout: 30000 // 30 second timeout
+        });
+
+        success = true;
+        currentNonce!++; // Increment nonce for next transaction
+        
+        console.log(`USDC grant payment sent: ${payment.amount_usdc} USDC to ${payment.recipient_address}, TX: ${txHash}`);
+
+      } catch (error) {
+        retryCount++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        
+        if (errorMessage.includes('nonce too low') || errorMessage.includes('replacement transaction underpriced')) {
+          // Nonce issue - get fresh nonce and retry
+          console.log(`Nonce issue for payment ${payment.id}, retry ${retryCount}/${maxRetries}`);
+          try {
+            currentNonce = await publicClient.getTransactionCount({
+              address: walletClient.account.address,
+              blockTag: 'pending'
+            });
+            console.log(`Updated nonce to: ${currentNonce}`);
+          } catch (nonceError) {
+            console.error('Failed to get updated nonce:', nonceError);
+            error = `Failed to get nonce: ${nonceError instanceof Error ? nonceError.message : 'Unknown error'}`;
+            break;
+          }
+          
+          // Wait a bit before retry
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } else {
+          // Other error - don't retry
+          console.error(`Non-retryable error for payment ${payment.id}:`, errorMessage);
+          error = errorMessage;
+          break;
+        }
+      }
+    }
+
+    // Record result
+    if (success && txHash) {
       results.push({
         id: payment.id,
         txHash,
         status: 'success' as const
       });
-
-      console.log(`USDC grant payment sent: ${payment.amount_usdc} USDC to ${payment.recipient_address}, TX: ${txHash}`);
-
-    } catch (error) {
-      console.error(`Failed to send USDC grant payment for ID ${payment.id}:`, error);
+    } else {
       results.push({
         id: payment.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error || `Failed after ${maxRetries} retries`,
         status: 'failed' as const
       });
+    }
+
+    // Small delay between transactions to ensure nonce is properly updated
+    if (success) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
